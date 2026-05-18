@@ -1,20 +1,20 @@
 // === إعدادات مستودع GitHub الخاص بك ===
-const GITHUB_USER = 'spacenll';
-const GITHUB_REPO = 'plann';
-const FOLDER_NAME = 'kmls';              // اسم المجلد الذي يحتوي على الملفات
+const GITHUB_USER = 'spacenll'; 
+const GITHUB_REPO = 'plann';      
+const FOLDER_NAME = 'kmls';              
 
+// --- 1. إعداد طبقات الخريطة المختلفة ---
 const streetLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 20 });
 const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 20 });
 const darkLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 20 });
 
-// بدء الخريطة (الوضع الافتراضي هو القمر الصناعي)
+// بدء الخريطة
 const map = L.map('map', {
     center: [17.0151, 54.0924],
     zoom: 13,
     layers: [satelliteLayer] 
 });
 
-// إضافة قائمة التحكم بالطبقات
 const baseMaps = {
     "القمر الصناعي": satelliteLayer,
     "خريطة الشوارع": streetLayer,
@@ -22,36 +22,56 @@ const baseMaps = {
 };
 L.control.layers(baseMaps, null, { position: 'topleft' }).addTo(map);
 
-// --- 2. دالة حساب أطوال أضلاع الـ KML ---
+// --- 2. دالة حساب المقاسات (تم تحديثها لتبحث في العمق) ---
 function getKmlMeasurements(layerGroup) {
     let html = '';
-    layerGroup.eachLayer(function(layer) {
-        // التحقق مما إذا كانت الطبقة مضلع (Polygon)
-        if (layer instanceof L.Polygon) {
-            const latlngs = layer.getLatLngs()[0]; // جلب نقاط المضلع
-            let totalPerimeter = 0;
-            
-            html += `<div class="measurements-box">
-                        <h4>📏 قياسات الأضلاع:</h4>
-                        <ul>`;
-            
-            for (let i = 0; i < latlngs.length; i++) {
-                const p1 = latlngs[i];
-                const p2 = latlngs[(i + 1) % latlngs.length]; // النقطة التالية (مع العودة لنقطة البداية للإغلاق)
-                
-                // تجاهل النقاط المكررة في بعض ملفات KML
-                if (p1.lat === p2.lat && p1.lng === p2.lng) continue;
+    let totalPerimeter = 0;
+    let points = [];
 
-                const distance = map.distance(p1, p2); // حساب المسافة بالمتر
-                totalPerimeter += distance;
-                html += `<li>الضلع ${i + 1}: <b>${distance.toFixed(1)} م</b></li>`;
+    // دالة حفر عميقة (Recursive) لاستخراج النقاط من أي طبقة متداخلة
+    function extractPoints(layer) {
+        if (layer instanceof L.Polygon || layer instanceof L.Polyline) {
+            let latlngs = layer.getLatLngs();
+            // معالجة المصفوفات المتداخلة (في حال كان المضلع معقداً)
+            if (latlngs.length > 0 && Array.isArray(latlngs[0])) {
+                points = latlngs[0];
+            } else {
+                points = latlngs;
             }
-            
-            html += `</ul>
-                     <div class="total-perimeter">المحيط الإجمالي: ${totalPerimeter.toFixed(1)} متر</div>
-                     </div>`;
+        } else if (layer.eachLayer) {
+            layer.eachLayer(function(childLayer) {
+                extractPoints(childLayer);
+            });
         }
-    });
+    }
+
+    // تشغيل دالة الاستخراج على ملف الـ KML
+    extractPoints(layerGroup);
+
+    // إذا وجدنا نقاطاً قابلة للقياس
+    if (points.length > 1) {
+        html += `<div class="measurements-box">
+                    <h4>📏 قياسات الأضلاع:</h4>
+                    <ul>`;
+        
+        for (let i = 0; i < points.length; i++) {
+            const p1 = points[i];
+            const p2 = points[(i + 1) % points.length]; // لربط النقطة الأخيرة بالأولى وإغلاق الشكل
+            
+            if (p1.lat === p2.lat && p1.lng === p2.lng) continue;
+
+            const distance = map.distance(p1, p2); // القياس بالمتر
+            totalPerimeter += distance;
+            html += `<li>الضلع ${i + 1}: <b>${distance.toFixed(1)} م</b></li>`;
+        }
+        
+        html += `</ul>
+                 <div class="total-perimeter">المحيط الإجمالي: ${totalPerimeter.toFixed(1)} متر</div>
+                 </div>`;
+    } else {
+        html += `<div class="measurements-box"><p style="color:#e74c3c; font-size:13px;">لم يتم التعرف على أضلاع قابلة للقياس هندسياً في هذا الملف.</p></div>`;
+    }
+
     return html;
 }
 
@@ -71,13 +91,15 @@ async function loadLands() {
                 const area = parts[1] || 'غير محدد';
 
                 const kmlRes = await fetch(file.download_url);
-                const kmlText = await kmlRes.text();
+                let kmlText = await kmlRes.text();
+
+                // إصلاح جذري لمشكلة الـ Mixed Content (تحويل كل http إلى https)
+                kmlText = kmlText.replace(/http:\/\//g, 'https://');
 
                 const parser = new DOMParser();
                 const kmlDom = parser.parseFromString(kmlText, 'text/xml');
                 const kmlLayer = new L.KML(kmlDom);
 
-                // حساب القياسات وإضافتها للنافذة المنبثقة
                 const measurementsHtml = getKmlMeasurements(kmlLayer);
 
                 kmlLayer.bindPopup(`
@@ -88,11 +110,10 @@ async function loadLands() {
                     </div>
                 `);
 
-                // تغيير ستايل الـ KML ليصبح واضحاً مع لون أنيق
                 kmlLayer.setStyle({
-                    color: '#d4af37', // لون الحدود (ذهبي)
+                    color: '#d4af37',
                     weight: 3,
-                    fillColor: '#46306e', // لون التعبئة (بنفسجي عميق)
+                    fillColor: '#46306e',
                     fillOpacity: 0.4
                 });
 
