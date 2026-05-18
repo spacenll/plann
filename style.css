@@ -8,7 +8,32 @@ body, html {
     width: 100vw;
     height: 100vh;
 }
+/* تنسيق الشعار العائم */
+.floating-logo {
+    position: fixed;
+    bottom: 30px; /* المسافة من أسفل الشاشة */
+    left: 50%; /* التمركز في المنتصف الأولي */
+    transform: translateX(-50%); /* ضبط المنتصف بدقة رياضية */
+    z-index: 9999; /* رقم عالي جداً لضمان بقائه فوق كل طبقات الخريطة */
+    transition: transform 0.3s ease-in-out; /* حركة سلسة عند التمرير */
+}
 
+.floating-logo img {
+    width: 70px; /* عرض الشعار - يمكنك تكبيره أو تصغيره */
+    height: 70px; /* طول الشعار */
+    object-fit: contain; /* للحفاظ على أبعاد الصورة دون تشويه */
+    border-radius: 50%; /* لجعل حواف الخلفية دائرية */
+    background-color: rgba(255, 255, 255, 0.95); /* خلفية بيضاء خفيفة لإبراز الشعار */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3); /* ظل أنيق لإعطاء تأثير الطفو */
+    padding: 5px; /* مساحة داخلية حول الشعار */
+    border: 2px solid #d4af37; /* إطار ذهبي رفيع متناسق مع تصميم الخريطة */
+}
+
+/* تأثير عند تمرير الماوس فوق الشعار */
+.floating-logo:hover {
+    transform: translateX(-50%) scale(1.1); /* تكبير الشعار بنسبة 10% */
+    cursor: pointer;
+}
 /* تنسيق قائمة التحكم بالطبقات */
 .leaflet-control-layers {
     background-color: #1a1a1a !important;
