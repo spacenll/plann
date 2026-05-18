@@ -9,19 +9,19 @@ const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/
 const darkLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 20 });
 
 // بدء الخريطة
-const labelLayer = L.tileLayer('https://stamen-tiles-{s}.a.ssl.fastly.net/toner-labels/{z}/{x}/{y}{r}.png', {
+const labelLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {
     maxZoom: 20,
-    opacity: 0.7 // درجة شفافية المسميات
+    opacity: 0.9 // وضوح عالي للمسميات
 });
 
 const map = L.map('map', {
     center: [17.0151, 54.0924],
     zoom: 13,
-    layers: [satelliteLayer, labelLayer] // أضفنا labelLayer هنا لتظهر فوق القمر الصناعي
+    layers: [satelliteLayer, labelLayer] // هنا دمجنا الصور مع المسميات
 });
 
 const baseMaps = {
-    "القمر الصناعي": satelliteLayer,
+    "القمر الصناعي + مسميات": L.layerGroup([satelliteLayer, labelLayer]),
     "خريطة الشوارع": streetLayer,
     "الوضع الليلي": darkLayer
 };
@@ -104,7 +104,15 @@ async function loadLands() {
                 const parser = new DOMParser();
                 const kmlDom = parser.parseFromString(kmlText, 'text/xml');
                 const kmlLayer = new L.KML(kmlDom);
-
+kmlLayer.eachLayer(function(layer) {
+                    if (layer instanceof L.Polygon || layer instanceof L.Polyline) {
+                        layer.bindTooltip(`أرض ${plotNum}`, {
+                            permanent: true,       // تظهر دائماً
+                            direction: 'center',   // في منتصف الأرض
+                            className: 'land-label' // التنسيق الذي وضعناه في CSS
+                        }).openTooltip();
+                    }
+                });
                 const measurementsHtml = getKmlMeasurements(kmlLayer);
 const whatsappMsg = encodeURIComponent(`مرحبا، أريد معلومات أكثر عن أرض رقم (${plotNum})`);
                 const whatsappUrl = `https://api.whatsapp.com/send?phone=96899481717&text=${whatsappMsg}`;
