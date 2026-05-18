@@ -8,6 +8,7 @@ body, html {
 #map {
     width: 100vw;
     height: 100vh;
+     font-family: "Alexandria", sans-serif;
 }
 /* تنسيق الشعار العائم */
 .floating-logo {
@@ -43,7 +44,7 @@ body, html {
     border-radius: 8px !important;
     padding: 8px !important;
     box-shadow: 0 4px 15px rgba(0,0,0,0.5) !important;
-    font-family: 'Segoe UI', Tahoma, sans-serif;
+   font-family: "Alexandria", sans-serif;
     direction: rtl;
     text-align: right;
 }
