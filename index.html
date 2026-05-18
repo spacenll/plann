@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام إدارة واستعراض الأراضي</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header>
+        <h1>نظام إدارة واستعراض الأراضي</h1>
+    </header>
+
+    <div class="container">
+        <!-- الخريطة تظهر للجميع -->
+        <section class="map-section">
+            <h2>خريطة الأراضي المستهدفة</h2>
+            <div id="map"></div>
+        </section>
+
+        <!-- تسجيل دخول الإدارة -->
+        <section class="form-section" id="login-section">
+            <h2>تسجيل دخول الإدارة (لإضافة الأراضي)</h2>
+            <div class="form-group">
+                <label>كلمة المرور:</label>
+                <input type="password" id="adminPassword" placeholder="أدخل كلمة المرور السرية">
+            </div>
+            <button type="button" onclick="checkLogin()">فتح لوحة الإضافة</button>
+        </section>
+
+        <!-- نموذج الإضافة (مخفي افتراضياً) -->
+        <section class="form-section" id="admin-form" style="display: none;">
+            <h2>إضافة أرض جديدة</h2>
+            <form id="landForm">
+                <div class="form-group">
+                    <label>المنطقة (مثال: صلالة - عوقد):</label>
+                    <input type="text" id="location" required>
+                </div>
+                <div class="form-group">
+                    <label>المربع (مثال: مربع ج):</label>
+                    <input type="text" id="block" required>
+                </div>
+                <div class="form-group">
+                    <label>المساحة (متر مربع):</label>
+                    <input type="number" id="area" required>
+                </div>
+                <div class="form-group">
+                    <label>عدد الطوابق المصرحة:</label>
+                    <input type="number" id="floors" required>
+                </div>
+                <div class="form-group">
+                    <label>الاستخدام:</label>
+                    <select id="type" required>
+                        <option value="سكني">سكني</option>
+                        <option value="تجاري">تجاري</option>
+                        <option value="سكني تجاري">سكني تجاري</option>
+                        <option value="صناعي">صناعي</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>ملف الأرض (KML):</label>
+                    <input type="file" id="kmlFile" accept=".kml" required>
+                </div>
+                <div class="form-group">
+                    <label>صورة الكروكي:</label>
+                    <input type="file" id="imageFile" accept="image/*" required>
+                </div>
+                <button type="submit" id="submitBtn">حفظ الأرض في جوجل درايف</button>
+            </form>
+        </section>
+    </div>
+
+    <!-- المكتبات وسكريبت التشغيل -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://plugins.krause-io.de/leaflet-kml/L.KML.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
