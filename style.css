@@ -8,17 +8,77 @@ body, html {
     width: 100vw;
     height: 100vh;
 }
+
+/* تنسيق قائمة التحكم بالطبقات */
+.leaflet-control-layers {
+    background-color: #1a1a1a !important;
+    color: #ffffff !important;
+    border: 1px solid #46306e !important;
+    border-radius: 8px !important;
+    padding: 8px !important;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.5) !important;
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+    direction: rtl;
+    text-align: right;
+}
+.leaflet-control-layers label {
+    margin-bottom: 5px;
+    cursor: pointer;
+}
+
+/* تنسيق النافذة المنبثقة (Popup) بنمط نظيف وفخم */
+.leaflet-popup-content-wrapper {
+    background: #ffffff;
+    border-radius: 8px;
+    padding: 5px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+}
 .custom-popup {
     text-align: right;
     direction: rtl;
+    min-width: 200px;
 }
 .custom-popup h3 {
     margin: 0 0 10px 0;
-    color: #2c3e50;
-    border-bottom: 2px solid #27ae60;
-    padding-bottom: 5px;
+    color: #46306e; /* لون بنفسجي فخم */
+    border-bottom: 2px solid #d4af37; /* لمسة ذهبية */
+    padding-bottom: 8px;
+    font-size: 18px;
 }
-.custom-popup p {
+.custom-popup .area-text {
     margin: 5px 0;
+    font-size: 15px;
+    color: #333;
+}
+
+/* تنسيق صندوق القياسات */
+.measurements-box {
+    background: #f8f9fa;
+    border-right: 3px solid #7d3881; /* خط جانبي للتحديد */
+    padding: 10px;
+    margin-top: 12px;
+    border-radius: 4px;
+}
+.measurements-box h4 {
+    margin: 0 0 8px 0;
+    color: #2c3e50;
+    font-size: 14px;
+}
+.measurements-box ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+    font-size: 13px;
+    color: #555;
+}
+.measurements-box ul li {
+    margin-bottom: 4px;
+    border-bottom: 1px dashed #ddd;
+    padding-bottom: 2px;
+}
+.total-perimeter {
+    margin-top: 8px;
+    font-weight: bold;
+    color: #e74c3c;
     font-size: 14px;
 }
