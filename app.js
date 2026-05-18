@@ -51,7 +51,7 @@ function getKmlMeasurements(layerGroup) {
     // إذا وجدنا نقاطاً قابلة للقياس
     if (points.length > 1) {
         html += `<div class="measurements-box">
-                    <h4>📏 قياسات الأضلاع:</h4>
+                    <h4>📏  الأضلاع:</h4>
                     <ul>`;
         
         for (let i = 0; i < points.length; i++) {
@@ -101,22 +101,29 @@ async function loadLands() {
                 const kmlLayer = new L.KML(kmlDom);
 
                 const measurementsHtml = getKmlMeasurements(kmlLayer);
-
-                kmlLayer.bindPopup(`
+const whatsappMsg = encodeURIComponent(`مرحبا، أريد معلومات أكثر عن أرض رقم (${plotNum})`);
+                const whatsappUrl = `https://api.whatsapp.com/send?phone=96899481717&text=${whatsappMsg}`;
+                
+             kmlLayer.bindPopup(`
                     <div class="custom-popup">
                         <h3>أرض رقم: ${plotNum}</h3>
                         <p class="area-text"><b>المساحة المكتوبة:</b> ${area} م²</p>
                         ${measurementsHtml}
+                        
+                        <!-- زر الواتساب الجديد -->
+                        <a href="${whatsappUrl}" target="_blank" class="whatsapp-btn">
+                            استفسار عبر واتساب 💬
+                        </a>
                     </div>
                 `);
 
-                kmlLayer.setStyle({
+             kmlLayer.setStyle({
                     color: '#d4af37',
                     weight: 3,
                     fillColor: '#46306e',
                     fillOpacity: 0.4
                 });
-
+                
                 map.addLayer(kmlLayer);
             }
         });
