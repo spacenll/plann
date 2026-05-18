@@ -10,6 +10,25 @@ body, html {
     height: 100vh;
      font-family: "Alexandria", sans-serif;
 }
+
+/* تنسيق مسميات الأراضي */
+.land-label {
+    background: rgba(70, 48, 110, 0.85); /* بنفسجي عميق شفاف */
+    border: 1px solid #d4af37; /* إطار ذهبي رفيع */
+    color: #ffffff;
+    font-weight: bold;
+    font-size: 11px;
+    padding: 2px 5px;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    pointer-events: none; /* لكي لا تعيق النقر على الأرض تحتها */
+}
+
+/* إخفاء السهم الصغير الذي يظهر تحت المسمى */
+.leaflet-tooltip-top:before, .leaflet-tooltip-bottom:before, 
+.leaflet-tooltip-left:before, .leaflet-tooltip-right:before {
+    display: none;
+}
 /* تنسيق الشعار العائم */
 .floating-logo {
     position: fixed;
