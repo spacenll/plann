@@ -1,5 +1,5 @@
 // ضع رابط الـ Web App الخاص بجوجل سكريبت هنا
-const WEB_APP_URL = "ضع_رابط_جوجل_ويب_أب_هنا"; 
+const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwiHgLHr0cgK3accmmkCuNOcGWaO1SUzF_pYiqwxKtn0qINLq5zX11shgwS8B-YxlGl/exec"; 
 
 // إعداد الخريطة والتركيز على صلالة
 const map = L.map('map').setView([17.0151, 54.0924], 12);
