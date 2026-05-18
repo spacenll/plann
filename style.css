@@ -58,6 +58,27 @@ body, html {
     padding: 5px;
     box-shadow: 0 5px 20px rgba(0,0,0,0.15);
 }
+
+/* تنسيق زر الواتساب داخل النافذة المنبثقة */
+.whatsapp-btn {
+    display: block;
+    background-color: #25D366; /* لون واتساب الرسمي */
+    color: white !important; /* فرض اللون الأبيض لتجاوز أي إعدادات افتراضية للروابط */
+    text-align: center;
+    padding: 10px;
+    margin-top: 15px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 15px;
+    transition: background-color 0.3s ease;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.whatsapp-btn:hover {
+    background-color: #1ebe57; /* لون أغمق قليلاً عند تمرير الماوس */
+    text-decoration: none;
+}
 .custom-popup {
     text-align: right;
     direction: rtl;
