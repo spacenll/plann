@@ -86,36 +86,50 @@ document.getElementById('landForm').addEventListener('submit', async (e) => {
 });
 
 // 5. جلب الأراضي وعرضها على الخريطة للزوار
+// 5. جلب الأراضي وعرضها على الخريطة للزوار
 async function loadLandsOnMap() {
     try {
         const res = await fetch(WEB_APP_URL);
         const lands = await res.json();
 
         lands.forEach(land => {
-            if (land['رابط ملف KML']) {
-                fetch(land['رابط ملف KML'])
+            const kmlId = land['رابط ملف KML'];
+            
+            // التأكد أن الحقل يحتوي على ID صحيح لتفادي الأسطر الفارغة
+            if (kmlId && kmlId.length > 10) {
+                
+                // نطلب محتوى الملف عبر سكريبت جوجل الخاص بنا لتخطي الحظر
+                const kmlContentUrl = `${WEB_APP_URL}?kmlId=${kmlId}`;
+
+                fetch(kmlContentUrl)
                     .then(response => response.text())
                     .then(kmlText => {
+                        if(kmlText.includes("Error")) return; // تجاهل في حال فشل القراءة
+
                         const parser = new DOMParser();
                         const kmlDom = parser.parseFromString(kmlText, 'text/xml');
                         const kmlLayer = new L.KML(kmlDom);
+                        
                         map.addLayer(kmlLayer);
 
                         kmlLayer.bindPopup(`
-                            <div style="direction:rtl; text-align:right;">
-                                <h3>المنطقة: ${land['المنطقة']}</h3>
+                            <div style="direction:rtl; text-align:right; font-family: sans-serif;">
+                                <h3 style="color: #2c3e50; border-bottom: 2px solid #27ae60; padding-bottom: 5px;">المنطقة: ${land['المنطقة']}</h3>
                                 <p><b>المربع:</b> ${land['المربع']}</p>
                                 <p><b>المساحة:</b> ${land['المساحة']} م²</p>
                                 <p><b>الاستخدام:</b> ${land['النوع']}</p>
                                 <p><b>عدد الطوابق:</b> ${land['عدد الطوابق']}</p>
-                                <a href="${land['رابط صورة الكروكي']}" target="_blank" style="color: blue; text-decoration: underline;">عرض صورة الكروكي</a>
+                                <div style="margin-top: 10px; text-align: center;">
+                                    <a href="${land['رابط صورة الكروكي']}" target="_blank" style="background: #3498db; color: white; padding: 5px 10px; border-radius: 4px; text-decoration: none; display: inline-block;">عرض صورة الكروكي</a>
+                                </div>
                             </div>
                         `);
-                    });
+                    })
+                    .catch(err => console.log("خطأ في رسم الـ KML:", err));
             }
         });
     } catch (err) {
-        console.log("لم يتم العثور على أراضي مضافة مسبقاً لعرضها.");
+        console.log("لم يتم العثور على أراضي مضافة مسبقاً لعرضها أو الجدول فارغ.");
     }
 }
 
