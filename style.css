@@ -42,8 +42,9 @@ body, html {
 /* تنسيق نص الإدارة في الزاوية اليمنى السفلى */
 .management-credit {
     position: fixed;
-    bottom: 20px; /* المسافة من الأسفل */
-    right: 20px;  /* المسافة من اليمين */
+       left: 50%;
+    bottom: 10px;
+    transform: translateX(-50%);
     z-index: 10000; /* لضمان ظهوره فوق طبقات الخريطة */
     background-color: rgba(26, 26, 26, 0.8); /* خلفية سوداء شفافة فخمة */
     color: #d4af37; /* لون ذهبي ملكي */
