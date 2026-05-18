@@ -39,7 +39,34 @@ body, html {
     z-index: 9999; /* رقم عالي جداً لضمان بقائه فوق كل طبقات الخريطة */
     transition: transform 0.3s ease-in-out; /* حركة سلسة عند التمرير */
 }
+/* تنسيق نص الإدارة في الزاوية اليمنى السفلى */
+.management-credit {
+    position: fixed;
+    bottom: 20px; /* المسافة من الأسفل */
+    right: 20px;  /* المسافة من اليمين */
+    z-index: 10000; /* لضمان ظهوره فوق طبقات الخريطة */
+    background-color: rgba(26, 26, 26, 0.8); /* خلفية سوداء شفافة فخمة */
+    color: #d4af37; /* لون ذهبي ملكي */
+    padding: 6px 15px;
+    border-radius: 30px; /* حواف دائرية ناعمة */
+    font-size: 14px;
+    font-weight: bold;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(212, 175, 55, 0.3); /* إطار ذهبي خفيف جداً */
+    pointer-events: none; /* لضمان عدم إعاقة النقر على الخريطة تحت النص */
+    direction: rtl;
+    letter-spacing: 0.5px;
+}
 
+/* في حال كان الموقع يُفتح من الجوال، نصغر الخط قليلاً */
+@media (max-width: 600px) {
+    .management-credit {
+        bottom: 10px;
+        right: 10px;
+        font-size: 12px;
+        padding: 4px 10px;
+    }
+}
 .floating-logo img {
     width: 70px; /* عرض الشعار - يمكنك تكبيره أو تصغيره */
     height: 70px; /* طول الشعار */
