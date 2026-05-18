@@ -60,14 +60,7 @@ body, html {
 }
 
 /* في حال كان الموقع يُفتح من الجوال، نصغر الخط قليلاً */
-@media (max-width: 600px) {
-    .management-credit {
-        bottom: 10px;
-        right: 10px;
-        font-size: 12px;
-        padding: 4px 10px;
-    }
-}
+
 .floating-logo img {
     width: 70px; /* عرض الشعار - يمكنك تكبيره أو تصغيره */
     height: 70px; /* طول الشعار */
