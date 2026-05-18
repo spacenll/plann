@@ -10,7 +10,37 @@ body, html {
     height: 100vh;
      font-family: "Alexandria", sans-serif;
 }
+/* مسمى الأراضي المباعة (أحمر) */
+.land-label-sold {
+    background: rgba(192, 57, 43, 0.9); /* أحمر غامق */
+    border: 1px solid #ffffff;
+    color: #ffffff;
+    font-weight: bold;
+    font-size: 11px;
+    padding: 2px 5px;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    pointer-events: none;
+}
 
+/* شارة "تم البيع" داخل النافذة */
+.sold-badge {
+    background-color: #e74c3c;
+    color: white;
+    text-align: center;
+    padding: 12px;
+    margin-top: 15px;
+    border-radius: 6px;
+    font-weight: bold;
+    font-size: 18px;
+    border: 2px dashed #ffffff;
+}
+
+/* تعديل شكل النافذة للأراضي المباعة */
+.sold-popup h3 {
+    color: #c0392b !important;
+    border-bottom: 2px solid #e74c3c !important;
+}
 /* تنسيق مسميات الأراضي */
 .land-label {
     background: rgba(70, 48, 110, 0.85); /* بنفسجي عميق شفاف */
