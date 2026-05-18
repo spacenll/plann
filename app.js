@@ -9,10 +9,15 @@ const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/
 const darkLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 20 });
 
 // بدء الخريطة
+const labelLayer = L.tileLayer('https://stamen-tiles-{s}.a.ssl.fastly.net/toner-labels/{z}/{x}/{y}{r}.png', {
+    maxZoom: 20,
+    opacity: 0.7 // درجة شفافية المسميات
+});
+
 const map = L.map('map', {
     center: [17.0151, 54.0924],
     zoom: 13,
-    layers: [satelliteLayer] 
+    layers: [satelliteLayer, labelLayer] // أضفنا labelLayer هنا لتظهر فوق القمر الصناعي
 });
 
 const baseMaps = {
