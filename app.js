@@ -107,7 +107,7 @@ async function fetchAndDisplay(folderName, isSold = false) {
                         <div class="custom-popup sold-popup">
                             <h3>أرض رقم: ${plotNum}</h3>
                             <p class="area-text"><b>المساحة :</b> ${area} م²</p>
-                            <div class="sold-badge">تـم الـبـيـع ❌</div>
+                            <div class="sold-badge">تـم الـبـيـع</div>
                         </div>`;
                     styleOptions = { color: '#e74c3c', weight: 3, fillColor: '#c0392b', fillOpacity: 0.6 };
                     labelClass = "land-label-sold";
