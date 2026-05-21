@@ -7,7 +7,6 @@ const streetLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.
 const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 20 });
 const darkLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 20 });
 
-// طبقة المسميات الرسمية (تظهر فوق القمر الصناعي)
 const labelLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {
     maxZoom: 20,
     opacity: 0.9 
@@ -16,7 +15,7 @@ const labelLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/serv
 const map = L.map('map', {
     center: [17.0151, 54.0924],
     zoom: 13,
-    layers: [satelliteLayer, labelLayer] // تشغيل القمر الصناعي والمسميات افتراضياً
+    layers: [satelliteLayer, labelLayer]
 });
 
 const baseMaps = {
@@ -72,7 +71,7 @@ function getKmlMeasurements(layerGroup) {
     return html;
 }
 
-// دالة مساعدة لبناء وتجهيز طبقة الأرض المفردة بناءً على حالتها
+// دالة مساعدة لمعالجة ورسم طبقة الأرض
 function processAndDisplayLayer(kmlText, plotNum, area, isSold) {
     const parser = new DOMParser();
     const kmlDom = parser.parseFromString(kmlText, 'text/xml');
@@ -124,85 +123,72 @@ function processAndDisplayLayer(kmlText, plotNum, area, isSold) {
     return kmlLayer;
 }
 
-// --- 3. الدالة الرئيسية لجلب البيانات العامة (متاحة أو مباعة) ---
-async function fetchAndDisplay(folderName, isSold = false) {
-    const apiUrl = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${folderName}`;
+// دالة جلب ملف KML واحد ورسمه
+async function fetchSingleKml(landName, isSold) {
+    const folder = isSold ? 'sold_kmls' : 'kmls';
+    const fileUrl = `https://raw.githubusercontent.com/${GITHUB_USER}/${GITHUB_REPO}/main/${folder}/${landName}.kml`;
     
     try {
-        const response = await fetch(apiUrl);
-        if (!response.ok) return; 
-        const files = await response.json();
+        const res = await fetch(fileUrl);
+        if (!res.ok) return null;
+        let kmlText = await res.text();
+        kmlText = kmlText.replace(/http:\/\//g, 'https://');
 
-        files.forEach(async (file) => {
-            if (file.name.endsWith('.kml')) {
-                const nameWithoutExt = file.name.replace('.kml', '');
-                const parts = nameWithoutExt.split('_');
-                const plotNum = parts[0] || 'غير محدد';
-                const area = parts[1] || 'غير محدد';
+        const parts = landName.split('_');
+        const plotNum = parts[0] || 'غير محدد';
+        const area = parts[1] || 'غير محدد';
 
-                const kmlRes = await fetch(file.download_url);
-                let kmlText = await kmlRes.text();
-                kmlText = kmlText.replace(/http:\/\//g, 'https://'); 
-
-                processAndDisplayLayer(kmlText, plotNum, area, isSold);
-            }
-        });
-    } catch (error) {
-        console.error("خطأ في جلب بيانات المجلد: " + folderName, error);
+        return processAndDisplayLayer(kmlText, plotNum, area, isSold);
+    } catch (err) {
+        console.error("خطأ في جلب ملف الكيه إم إل:", landName, err);
+        return null;
     }
 }
 
-// --- 4. نظام التحكم بالتوجيه وعرض الأرض المفردة (Deep Linking) ---
-async function handleRouting() {
+// --- 3. نظام التوجيه وإدارة البيانات الجديد بدون قيود ---
+async function handleRoutingAndData() {
     const urlParams = new URLSearchParams(window.location.search);
-    const targetLand = urlParams.get('land'); // جلب القيمة الممررة مثل ?land=1146D_1274
+    const targetLand = urlParams.get('land');
 
+    // 1. إذا كان المستخدم يطلب أرضاً معينة عبر الرابط المباشر
     if (targetLand) {
-        console.log(`محاولة عرض الأرض المستهدفة المحددة فقط: ${targetLand}`);
-        
-        // 1. محاولة فحص وجلب الملف كأرض متاحة أولاً
-        let fileUrl = `https://raw.githubusercontent.com/${GITHUB_USER}/${GITHUB_REPO}/main/kmls/${targetLand}.kml`;
-        let isSold = false;
-        let checkResponse = await fetch(fileUrl);
-        
-        // 2. إذا لم يجدها في المتاحة، يحاول البحث في مجلد الأراضي المباعة
-        if (!checkResponse.ok) {
-            fileUrl = `https://raw.githubusercontent.com/${GITHUB_USER}/${GITHUB_REPO}/main/sold_kmls/${targetLand}.kml`;
-            isSold = true;
-            checkResponse = await fetch(fileUrl);
+        console.log(`عرض الأرض المحددة فقط: ${targetLand}`);
+        // نجرب جلبها كمتاحة أولاً
+        let layer = await fetchSingleKml(targetLand, false);
+        // إذا لم تكن متاحة نجرب جلبها كمباعة
+        if (!layer) {
+            layer = await fetchSingleKml(targetLand, true);
         }
 
-        // 3. في حال تم العثور على الملف في أحد المجلدين
-        if (checkResponse.ok) {
-            let kmlText = await checkResponse.text();
-            kmlText = kmlText.replace(/http:\/\//g, 'https://');
-
-            const parts = targetLand.split('_');
-            const plotNum = parts[0] || 'غير محدد';
-            const area = parts[1] || 'غير محدد';
-
-            const activeLayer = processAndDisplayLayer(kmlText, plotNum, area, isSold);
-
-            // الانتقال وعمل تركيز (Zoom) على موقع الأرض المحددة بدقة
+        if (layer) {
             setTimeout(() => {
-                const bounds = activeLayer.getBounds();
-                if (bounds.isValid()) {
-                    map.fitBounds(bounds, { maxZoom: 18, padding: [50, 50] });
-                }
+                const bounds = layer.getBounds();
+                if (bounds.isValid()) map.fitBounds(bounds, { maxZoom: 18, padding: [50, 50] });
             }, 500);
-
         } else {
-            console.log("الرمز الممرر غير موجود، سيتم التحويل للعرض العام.");
-            // كخطة بديلة إذا كان رابط الأرض خاطئاً، اعرض كل شيء لمنع تعليق الصفحة
-            fetchAndDisplay('kmls', false);
-            fetchAndDisplay('sold_kmls', true);
+            alert("عذراً، لم يتم العثور على ملف الأرض المطلوبة.");
         }
-    } else {
-        // إذا دخل على الرابط الرئيسي الافتراضي بدون أي إضافات، اعرض كل الملفات
-        fetchAndDisplay('kmls', false);      
-        fetchAndDisplay('sold_kmls', true);  
+    } 
+    // 2. إذا دخل على الرابط الرئيسي العادي، نقرأ ملف الـ database.json الآمن
+    else {
+        const dbUrl = `https://raw.githubusercontent.com/${GITHUB_USER}/${GITHUB_REPO}/main/database.json`;
+        try {
+            const dbResponse = await fetch(dbUrl);
+            const db = await dbResponse.json();
+
+            // جلب ورسم كافة الأراضي المتاحة
+            if (db.available) {
+                db.available.forEach(landName => fetchSingleKml(landName, false));
+            }
+            // جلب ورسم كافة الأراضي المباعة
+            if (db.sold) {
+                db.sold.forEach(landName => fetchSingleKml(landName, true));
+            }
+        } catch (error) {
+            console.error("خطأ في قراءة ملف دليل الأراضي database.json", error);
+        }
     }
 }
 
-// تشغيل الفحص والتنفيذ التلقائي فور تحميل الصفحة
-handleRouting();
+// تشغيل الفحص
+handleRoutingAndData();
