@@ -134,7 +134,7 @@ body, html {
 
 /* تنسيق زر الواتساب داخل النافذة المنبثقة */
 .whatsapp-btn {
-    display: block;
+    display: none;
     background-color: #25D366; /* لون واتساب الرسمي */
     color: white !important; /* فرض اللون الأبيض لتجاوز أي إعدادات افتراضية للروابط */
     text-align: center;
@@ -159,7 +159,7 @@ body, html {
 }
 .custom-popup h3 {
     margin: 0 0 10px 0;
-    color: #46306e; /* لون بنفسجي فخم */
+    color: #d4af37; /* لون بنفسجي فخم */
     border-bottom: 2px solid #d4af37; /* لمسة ذهبية */
     padding-bottom: 8px;
     font-size: 18px;
@@ -198,6 +198,6 @@ body, html {
 .total-perimeter {
     margin-top: 8px;
     font-weight: bold;
-    color: #e74c3c;
+    color: #928988;
     font-size: 14px;
 }
