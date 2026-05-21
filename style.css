@@ -173,7 +173,7 @@ body, html {
 /* تنسيق صندوق القياسات */
 .measurements-box {
     background: #f8f9fa;
-    border-right: 3px solid #7d3881; /* خط جانبي للتحديد */
+    border-right: 3px solid #d4af37; /* خط جانبي للتحديد */
     padding: 10px;
     margin-top: 12px;
     border-radius: 4px;
