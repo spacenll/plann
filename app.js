@@ -50,7 +50,7 @@ function getKmlMeasurements(layerGroup) {
 
     if (points.length > 1) {
         html += `<div class="measurements-box">
-                    <h4>📏 الأضلاع:</h4>
+                    <h4>الأضلاع:</h4>
                     <ul>`;
         
         for (let i = 0; i < points.length; i++) {
