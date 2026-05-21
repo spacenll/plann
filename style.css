@@ -43,7 +43,7 @@ body, html {
 }
 /* تنسيق مسميات الأراضي */
 .land-label {
-    background: rgba(70, 48, 110, 0.85); /* بنفسجي عميق شفاف */
+    background: rgb(0 0 0 / 85%); /* بنفسجي عميق شفاف */
       font-family: "Alexandria", sans-serif;
     border: 1px solid #d4af37; /* إطار ذهبي رفيع */
     color: #ffffff;
