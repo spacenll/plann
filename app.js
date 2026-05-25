@@ -91,7 +91,8 @@ function processAndDisplayLayer(kmlText, plotNum, area, isSold) {
             layer.bindTooltip(` ${plotNum}`, {
                 permanent: true,
                 direction: 'center',
-                className: labelClass 
+                className: labelClass,
+                interactive: false
             });
 
             // إنشاء الـ Popup ديناميكياً عند الضغط لضمان عدم تعليق الكود
