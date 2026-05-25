@@ -111,7 +111,7 @@ function processAndDisplayLayer(kmlText, plotNum, area, isSold) {
 
     // إعداد شكل الدبوس الأصفر المخصص (أيقونة مخصصة متوافقة مع الحجم)
     const yellowPinIcon = L.icon({
-        iconUrl: 'https://maps.google.com/mapfiles/kml/paddle/ylw-blank.png', // أو رابط صورة yellow-pin.png الخاصة بك
+        iconUrl: '/plann/yellow-pin.png', // أو رابط صورة yellow-pin.png الخاصة بك
         iconSize: [32, 32],      // حجم الدبوس
         iconAnchor: [16, 32],    // نقطة تثبيت الدبوس (الأسفل في المنتصف)
         popupAnchor: [0, -32]    // مكان ظهور النافذة المنبثقة بالنسبة للدبوس
