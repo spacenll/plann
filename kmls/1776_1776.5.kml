@@ -3,13 +3,14 @@
 <Document id="document">
 	<name>خريطة بلا عنوان</name>
 	<gx:CascadingStyle kml:id="__managed_style_0E8E12DBFC3F9375AB6B_highlight">
-		<Style>
+		
+<Style>
 			<IconStyle>
 				<scale>1.2</scale>
 				<Icon>
-					<href>https://earth.google.com/earth/document/icon?color=1976d2&amp;id=2000&amp;scale=4</href>
+					<href>/plann/yellow-pin.png</href>
 				</Icon>
-				<hotSpot x="64" y="128" xunits="pixels" yunits="insetPixels"/>
+				<hotSpot x="20" y="2" xunits="pixels" yunits="pixels"/>
 			</IconStyle>
 			<LabelStyle>
 			</LabelStyle>
