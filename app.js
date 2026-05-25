@@ -25,7 +25,10 @@ const baseMaps = {
 };
 L.control.layers(baseMaps, null, { position: 'topleft' }).addTo(map);
 
-// --- 2. دالة حساب المقاسات (تم تحسينها لتعمل عند الضغط) ---
+// مصفوفة عامة لتخزين كل مضلعات الأراضي للرجوع إليها عند النقر الشامل
+const allLandsLayers = [];
+
+// --- 2. دالة حساب المقاسات ---
 function getKmlMeasurements(layer) {
     let html = '';
     let totalPerimeter = 0;
@@ -34,7 +37,7 @@ function getKmlMeasurements(layer) {
     if (layer instanceof L.Polygon || layer instanceof L.Polyline) {
         let latlngs = layer.getLatLngs();
         if (latlngs.length > 0 && Array.isArray(latlngs[0])) {
-            points = latlngs[0]; // في حال كان المضلع متعدد الحلقات
+            points = latlngs[0]; 
         } else {
             points = latlngs;
         }
@@ -63,6 +66,30 @@ function getKmlMeasurements(layer) {
     return html;
 }
 
+// دالة مساعدة لإنشاء محتوى الـ Popup
+function createPopupContent(layer, plotNum, area, isSold) {
+    if (isSold) {
+        return `
+            <div class="custom-popup sold-popup">
+                <h3>أرض رقم: ${plotNum}</h3>
+                <p class="area-text"><b>المساحة :</b> ${area} م²</p>
+                <div class="sold-badge">تـم الـبـيـع</div>
+            </div>`;
+    } else {
+        const measurementsHtml = getKmlMeasurements(layer);
+        const whatsappMsg = encodeURIComponent(`مرحبا، أريد معلومات أكثر عن أرض رقم (${plotNum})`);
+        return `
+            <div class="custom-popup">
+                <h3>أرض رقم: ${plotNum}</h3>
+                <p class="area-text"><b>المساحة :</b> ${area} م²</p>
+                ${measurementsHtml}
+                <a href="https://api.whatsapp.com/send?phone=96899481717&text=${whatsappMsg}" target="_blank" class="whatsapp-btn">
+                    استفسر عبر واتساب 💬
+                </a>
+            </div>`;
+    }
+}
+
 // دالة مساعدة لمعالجة ورسم طبقة الأرض
 function processAndDisplayLayer(kmlText, plotNum, area, isSold) {
     const parser = new DOMParser();
@@ -80,46 +107,30 @@ function processAndDisplayLayer(kmlText, plotNum, area, isSold) {
         labelClass = "land-label";
     }
 
-    // تعيين التصميم وإضافة المسميات والـ Popups لكل مضلع داخل ملف الـ KML
     kmlLayer.eachLayer(function(layer) {
         if (layer.setStyle) {
             layer.setStyle(styleOptions);
         }
 
         if (layer instanceof L.Polygon || layer instanceof L.Polyline) {
-            // إضافة التلميح النصي (اسم الأرض) في المنتصف بشكل غير تفاعلي لتفادي حجب النقرات
-            layer.bindTooltip(`أرض ${plotNum}`, {
+            // إضافة التلميح
+            layer.bindTooltip(` ${plotNum}`, {
                 permanent: true,
                 direction: 'center',
                 className: labelClass,
                 interactive: false 
             }).openTooltip();
 
-            // إنشاء الـ Popup ديناميكياً عند الضغط لضمان عدم تعليق الكود
-            layer.on('click', function() {
-                let popupHtml = "";
-                if (isSold) {
-                    popupHtml = `
-                        <div class="custom-popup sold-popup">
-                            <h3>أرض رقم: ${plotNum}</h3>
-                            <p class="area-text"><b>المساحة :</b> ${area} م²</p>
-                            <div class="sold-badge">تـم الـبـيـع</div>
-                        </div>`;
-                } else {
-                    // حساب القياسات هنا فقط عند ضغط المستخدم على الأرض
-                    const measurementsHtml = getKmlMeasurements(layer);
-                    const whatsappMsg = encodeURIComponent(`مرحبا، أريد معلومات أكثر عن أرض رقم (${plotNum})`);
-                    popupHtml = `
-                        <div class="custom-popup">
-                            <h3>أرض رقم: ${plotNum}</h3>
-                            <p class="area-text"><b>المساحة :</b> ${area} م²</p>
-                            ${measurementsHtml}
-                            <a href="https://api.whatsapp.com/send?phone=96899481717&text=${whatsappMsg}" target="_blank" class="whatsapp-btn">
-                                استفسر عبر واتساب 💬
-                            </a>
-                        </div>`;
-                }
-                layer.bindPopup(popupHtml).openPopup();
+            // حفظ بيانات الأرض داخل الطبقة نفسها للوصول إليها لاحقاً
+            layer.customData = { plotNum, area, isSold };
+            
+            // إضافة الطبقة للمصفوفة العامة للنقر الشامل
+            allLandsLayers.push(layer);
+
+            // النقر المباشر التقليدي (في حال ضغط على المضلع المكشوف)
+            layer.on('click', function(e) {
+                const content = createPopupContent(layer, plotNum, area, isSold);
+                layer.bindPopup(content).openPopup(e.latlng);
             });
         }
     });
@@ -127,6 +138,34 @@ function processAndDisplayLayer(kmlText, plotNum, area, isSold) {
     map.addLayer(kmlLayer);
     return kmlLayer;
 }
+
+// --- الحل السحري: الاستماع للنقر على مستوى الخريطة كاملة وفحص الإحداثيات ---
+map.on('click', function(e) {
+    // التحقق مما إذا كان هناك مضلع أرض يقع تحت نقطة النقر الحالية
+    for (let i = 0; i < allLandsLayers.length; i++) {
+        const layer = allLandsLayers[i];
+        
+        // فحص ما إذا كانت النقطة المضغوطة تقع داخل حدود المضلع
+        if (layer instanceof L.Polygon) {
+            const bounds = layer.getBounds();
+            
+            // فحص أولي سريع عبر الحدود (Bounds) لسرعة الأداء
+            if (bounds.contains(e.latlng)) {
+                const data = layer.customData;
+                if (data) {
+                    const content = createPopupContent(layer, data.plotNum, data.area, data.isSold);
+                    
+                    // فتح النافذة عند نقطة الضغط مباشرة
+                    L.popup()
+                        .setLatLng(e.latlng)
+                        .setContent(content)
+                        .openOn(map);
+                    break; // التوقف فور العثور على الأرض المطلوبة
+                }
+            }
+        }
+    }
+});
 
 // دالة جلب ملف KML واحد ورسمه
 async function fetchSingleKml(landName, isSold) {
@@ -177,11 +216,9 @@ async function handleRoutingAndData() {
             const dbResponse = await fetch(dbUrl);
             const db = await dbResponse.json();
 
-            // جلب ورسم كافة الأراضي المتاحة بالتوازي لسرعة الأداء
             if (db.available) {
                 db.available.forEach(landName => fetchSingleKml(landName, false));
             }
-            // جلب ورسم كافة الأراضي المباعة
             if (db.sold) {
                 db.sold.forEach(landName => fetchSingleKml(landName, true));
             }
