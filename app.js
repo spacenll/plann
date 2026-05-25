@@ -91,6 +91,7 @@ function createPopupContent(layer, plotNum, area, isSold) {
 }
 
 // دالة مساعدة لمعالجة ورسم طبقة الأرض
+// دالة مساعدة لمعالجة ورسم طبقة الأرض
 function processAndDisplayLayer(kmlText, plotNum, area, isSold) {
     const parser = new DOMParser();
     const kmlDom = parser.parseFromString(kmlText, 'text/xml');
@@ -108,26 +109,31 @@ function processAndDisplayLayer(kmlText, plotNum, area, isSold) {
     }
 
     kmlLayer.eachLayer(function(layer) {
+        // 1. إذا عثر الكود على الدبوس الأصفر الأصفر (yellow-pin) الخاص بـ Google Earth، نقوم بحذفه
+        if (layer instanceof L.Marker) {
+            kmlLayer.removeLayer(layer); 
+            return; // تخطي هذه الطبقة وعدم إضافتها
+        }
+
+        // 2. معالجة المضلعات فقط (الأرض)
         if (layer.setStyle) {
             layer.setStyle(styleOptions);
         }
 
         if (layer instanceof L.Polygon || layer instanceof L.Polyline) {
-            // إضافة التلميح
-            layer.bindTooltip(` ${plotNum}`, {
+            // إضافة التلميح النصي البديل للدبوس (شغل الـ CSS الفخم الخاص بك)
+            layer.bindTooltip(`أرض ${plotNum}`, {
                 permanent: true,
                 direction: 'center',
                 className: labelClass,
                 interactive: false 
             }).openTooltip();
 
-            // حفظ بيانات الأرض داخل الطبقة نفسها للوصول إليها لاحقاً
+            // حفظ البيانات في المضلع
             layer.customData = { plotNum, area, isSold };
-            
-            // إضافة الطبقة للمصفوفة العامة للنقر الشامل
             allLandsLayers.push(layer);
 
-            // النقر المباشر التقليدي (في حال ضغط على المضلع المكشوف)
+            // عند الضغط على المضلع
             layer.on('click', function(e) {
                 const content = createPopupContent(layer, plotNum, area, isSold);
                 layer.bindPopup(content).openPopup(e.latlng);
