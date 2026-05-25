@@ -25,28 +25,20 @@ const baseMaps = {
 };
 L.control.layers(baseMaps, null, { position: 'topleft' }).addTo(map);
 
-// --- 2. دالة حساب المقاسات (تبحث في العمق) ---
-function getKmlMeasurements(layerGroup) {
+// --- 2. دالة حساب المقاسات (تم تحسينها لتعمل عند الضغط) ---
+function getKmlMeasurements(layer) {
     let html = '';
     let totalPerimeter = 0;
     let points = [];
 
-    function extractPoints(layer) {
-        if (layer instanceof L.Polygon || layer instanceof L.Polyline) {
-            let latlngs = layer.getLatLngs();
-            if (latlngs.length > 0 && Array.isArray(latlngs[0])) {
-                points = latlngs[0];
-            } else {
-                points = latlngs;
-            }
-        } else if (layer.eachLayer) {
-            layer.eachLayer(function(childLayer) {
-                extractPoints(childLayer);
-            });
+    if (layer instanceof L.Polygon || layer instanceof L.Polyline) {
+        let latlngs = layer.getLatLngs();
+        if (latlngs.length > 0 && Array.isArray(latlngs[0])) {
+            points = latlngs[0]; // في حال كان المضلع متعدد الحلقات
+        } else {
+            points = latlngs;
         }
     }
-
-    extractPoints(layerGroup);
 
     if (points.length > 1) {
         html += `<div class="measurements-box">
@@ -77,49 +69,61 @@ function processAndDisplayLayer(kmlText, plotNum, area, isSold) {
     const kmlDom = parser.parseFromString(kmlText, 'text/xml');
     const kmlLayer = new L.KML(kmlDom);
 
-    let popupHtml = "";
     let styleOptions = {};
     let labelClass = "";
 
     if (isSold) {
-        popupHtml = `
-            <div class="custom-popup sold-popup">
-                <h3>أرض رقم: ${plotNum}</h3>
-                <p class="area-text"><b>المساحة :</b> ${area} م²</p>
-                <div class="sold-badge">تـم الـبـيـع</div>
-            </div>`;
         styleOptions = { color: '#e74c3c', weight: 3, fillColor: '#c0392b', fillOpacity: 0.6 };
         labelClass = "land-label-sold";
     } else {
-        const measurementsHtml = getKmlMeasurements(kmlLayer);
-        const whatsappMsg = encodeURIComponent(`مرحبا، أريد معلومات أكثر عن أرض رقم (${plotNum})`);
-        popupHtml = `
-            <div class="custom-popup">
-                <h3>أرض رقم: ${plotNum}</h3>
-                <p class="area-text"><b>المساحة :</b> ${area} م²</p>
-                ${measurementsHtml}
-                <a href="https://api.whatsapp.com/send?phone=96899481717&text=${whatsappMsg}" target="_blank" class="whatsapp-btn">
-                    استفسر عبر واتساب 💬
-                </a>
-            </div>`;
         styleOptions = { color: '#d4af37', weight: 3, fillColor: '#46306e', fillOpacity: 0.4 };
         labelClass = "land-label";
     }
 
+    // تعيين التصميم وإضافة المسميات والـ Popups لكل مضلع داخل ملف الـ KML
     kmlLayer.eachLayer(function(layer) {
+        if (layer.setStyle) {
+            layer.setStyle(styleOptions);
+        }
+
         if (layer instanceof L.Polygon || layer instanceof L.Polyline) {
+            // إضافة التلميح النصي (اسم الأرض) في المنتصف
             layer.bindTooltip(`أرض ${plotNum}`, {
                 permanent: true,
                 direction: 'center',
                 className: labelClass 
-            }).openTooltip();
+            });
+
+            // إنشاء الـ Popup ديناميكياً عند الضغط لضمان عدم تعليق الكود
+            layer.on('click', function() {
+                let popupHtml = "";
+                if (isSold) {
+                    popupHtml = `
+                        <div class="custom-popup sold-popup">
+                            <h3>أرض رقم: ${plotNum}</h3>
+                            <p class="area-text"><b>المساحة :</b> ${area} م²</p>
+                            <div class="sold-badge">تـم الـبـيـع</div>
+                        </div>`;
+                } else {
+                    // حساب القياسات هنا فقط عند ضغط المستخدم على الأرض
+                    const measurementsHtml = getKmlMeasurements(layer);
+                    const whatsappMsg = encodeURIComponent(`مرحبا، أريد معلومات أكثر عن أرض رقم (${plotNum})`);
+                    popupHtml = `
+                        <div class="custom-popup">
+                            <h3>أرض رقم: ${plotNum}</h3>
+                            <p class="area-text"><b>المساحة :</b> ${area} م²</p>
+                            ${measurementsHtml}
+                            <a href="https://api.whatsapp.com/send?phone=96899481717&text=${whatsappMsg}" target="_blank" class="whatsapp-btn">
+                                استفسر عبر واتساب 💬
+                            </a>
+                        </div>`;
+                }
+                layer.bindPopup(popupHtml).openPopup();
+            });
         }
     });
 
-    kmlLayer.bindPopup(popupHtml);
-    kmlLayer.setStyle(styleOptions);
     map.addLayer(kmlLayer);
-    
     return kmlLayer;
 }
 
@@ -150,12 +154,9 @@ async function handleRoutingAndData() {
     const urlParams = new URLSearchParams(window.location.search);
     const targetLand = urlParams.get('land');
 
-    // 1. إذا كان المستخدم يطلب أرضاً معينة عبر الرابط المباشر
     if (targetLand) {
         console.log(`عرض الأرض المحددة فقط: ${targetLand}`);
-        // نجرب جلبها كمتاحة أولاً
         let layer = await fetchSingleKml(targetLand, false);
-        // إذا لم تكن متاحة نجرب جلبها كمباعة
         if (!layer) {
             layer = await fetchSingleKml(targetLand, true);
         }
@@ -169,14 +170,13 @@ async function handleRoutingAndData() {
             alert("عذراً، لم يتم العثور على ملف الأرض المطلوبة.");
         }
     } 
-    // 2. إذا دخل على الرابط الرئيسي العادي، نقرأ ملف الـ database.json الآمن
     else {
         const dbUrl = `https://raw.githubusercontent.com/${GITHUB_USER}/${GITHUB_REPO}/main/database.json`;
         try {
             const dbResponse = await fetch(dbUrl);
             const db = await dbResponse.json();
 
-            // جلب ورسم كافة الأراضي المتاحة
+            // جلب ورسم كافة الأراضي المتاحة بالتوازي لسرعة الأداء
             if (db.available) {
                 db.available.forEach(landName => fetchSingleKml(landName, false));
             }
