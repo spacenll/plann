@@ -147,9 +147,12 @@ function processAndDisplayLayer(kmlText, plotNum, area, isSold) {
             allLandsLayers.push(layer);
 
             // عند الضغط على المضلع
-            layer.on('click', function(e) {
+           layer.on('click', function(e) {
                 const content = createPopupContent(layer, plotNum, area, isSold);
-                layer.bindPopup(content).openPopup(e.latlng);
+                L.popup()
+                    .setLatLng(e.latlng)
+                    .setContent(content)
+                    .openOn(map);
             });
         }
     });
