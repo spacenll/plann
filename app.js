@@ -92,6 +92,7 @@ function createPopupContent(layer, plotNum, area, isSold) {
 
 // دالة مساعدة لمعالجة ورسم طبقة الأرض
 // دالة مساعدة لمعالجة ورسم طبقة الأرض
+// دالة مساعدة لمعالجة ورسم طبقة الأرض
 function processAndDisplayLayer(kmlText, plotNum, area, isSold) {
     const parser = new DOMParser();
     const kmlDom = parser.parseFromString(kmlText, 'text/xml');
@@ -108,20 +109,32 @@ function processAndDisplayLayer(kmlText, plotNum, area, isSold) {
         labelClass = "land-label";
     }
 
+    // إعداد شكل الدبوس الأصفر المخصص (أيقونة مخصصة متوافقة مع الحجم)
+    const yellowPinIcon = L.icon({
+        iconUrl: 'https://maps.google.com/mapfiles/kml/paddle/ylw-blank.png', // أو رابط صورة yellow-pin.png الخاصة بك
+        iconSize: [32, 32],      // حجم الدبوس
+        iconAnchor: [16, 32],    // نقطة تثبيت الدبوس (الأسفل في المنتصف)
+        popupAnchor: [0, -32]    // مكان ظهور النافذة المنبثقة بالنسبة للدبوس
+    });
+
+    let targetPolygon = null;
+
+    // الفحص الأول: تنظيف وتجهيز المضلعات والحذف
     kmlLayer.eachLayer(function(layer) {
-        // 1. إذا عثر الكود على الدبوس الأصفر الأصفر (yellow-pin) الخاص بـ Google Earth، نقوم بحذفه
+        // حذف الدبوس الافتراضي القادم من الـ KML لأنه يسبب المشاكل
         if (layer instanceof L.Marker) {
             kmlLayer.removeLayer(layer); 
-            return; // تخطي هذه الطبقة وعدم إضافتها
+            return; 
         }
 
-        // 2. معالجة المضلعات فقط (الأرض)
         if (layer.setStyle) {
             layer.setStyle(styleOptions);
         }
 
         if (layer instanceof L.Polygon || layer instanceof L.Polyline) {
-            // إضافة التلميح النصي البديل للدبوس (شغل الـ CSS الفخم الخاص بك)
+            targetPolygon = layer;
+            
+            // إضافة التلميح النصي التلقائي
             layer.bindTooltip(`أرض ${plotNum}`, {
                 permanent: true,
                 direction: 'center',
@@ -129,7 +142,7 @@ function processAndDisplayLayer(kmlText, plotNum, area, isSold) {
                 interactive: false 
             }).openTooltip();
 
-            // حفظ البيانات في المضلع
+            // حفظ البيانات في المضلع والمصفوفة العامة
             layer.customData = { plotNum, area, isSold };
             allLandsLayers.push(layer);
 
@@ -140,6 +153,24 @@ function processAndDisplayLayer(kmlText, plotNum, area, isSold) {
             });
         }
     });
+
+    // الفحص الثاني: إذا وجدنا مضلع أرض، نحسب منتصفه الجغرافي ونزرع الدبوس الجديد الخاص بنا
+    if (targetPolygon) {
+        // جلب مركز المضلع الجغرافي الدقيق (Center)
+        const centerLatLng = targetPolygon.getBounds().getCenter();
+        
+        // إنشاء الدبوس الجديد في المنتصف تماماً
+        const customMarker = L.marker(centerLatLng, { icon: yellowPinIcon });
+        
+        // ربط الدبوس الجديد بنفس النافذة المنبثقة وحساب الأبعاد للأرض التابعة له
+        customMarker.on('click', function(e) {
+            const content = createPopupContent(targetPolygon, plotNum, area, isSold);
+            customMarker.bindPopup(content).openPopup();
+        });
+
+        // إضافة الدبوس الجديد إلى الخريطة مع طبقة الأرض
+        kmlLayer.addLayer(customMarker);
+    }
 
     map.addLayer(kmlLayer);
     return kmlLayer;
