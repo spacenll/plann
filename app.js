@@ -88,7 +88,7 @@ function processAndDisplayLayer(kmlText, plotNum, area, isSold) {
 
         if (layer instanceof L.Polygon || layer instanceof L.Polyline) {
             // إضافة التلميح النصي (اسم الأرض) في المنتصف
-            layer.bindTooltip(`أرض ${plotNum}`, {
+            layer.bindTooltip(` ${plotNum}`, {
                 permanent: true,
                 direction: 'center',
                 className: labelClass 
