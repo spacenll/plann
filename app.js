@@ -135,7 +135,7 @@ function processAndDisplayLayer(kmlText, plotNum, area, isSold) {
             targetPolygon = layer;
             
             // إضافة التلميح النصي التلقائي
-            layer.bindTooltip(`أرض ${plotNum}`, {
+            layer.bindTooltip(` ${plotNum}`, {
                 permanent: true,
                 direction: 'center',
                 className: labelClass,
