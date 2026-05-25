@@ -135,12 +135,7 @@ function processAndDisplayLayer(kmlText, plotNum, area, isSold) {
             targetPolygon = layer;
             
             // إضافة التلميح النصي التلقائي
-            layer.bindTooltip(` ${plotNum}`, {
-                permanent: true,
-                direction: 'center',
-                className: labelClass,
-                interactive: false 
-            }).openTooltip();
+       
 
             // حفظ البيانات في المضلع والمصفوفة العامة
             layer.customData = { plotNum, area, isSold };
