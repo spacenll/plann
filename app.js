@@ -86,14 +86,16 @@ function processAndDisplayLayer(kmlText, plotNum, area, isSold) {
             layer.setStyle(styleOptions);
         }
 
-        if (layer instanceof L.Polygon || layer instanceof L.Polyline) {
-            // إضافة التلميح النصي (اسم الأرض) في المنتصف
-            layer.bindTooltip(` ${plotNum}`, {
-                permanent: true,
-                direction: 'center',
-                className: labelClass,
-                interactive: false
-            });
+    if (layer instanceof L.Polygon || layer instanceof L.Polyline) {
+    // إضافة التلميح النصي (اسم الأرض) في المنتصف
+    layer.bindTooltip(`أرض ${plotNum}`, {
+        permanent: true,
+        direction: 'center',
+        className: labelClass,
+        interactive: false // تمنع الدبوس من استقبال النقر وحجب الأرض تحتها
+    }).openTooltip();
+}
+
 
             // إنشاء الـ Popup ديناميكياً عند الضغط لضمان عدم تعليق الكود
             layer.on('click', function() {
