@@ -190,24 +190,73 @@ map.on('click', function(e) {
         const layer = allLandsLayers[i];
         
         // فحص ما إذا كانت النقطة المضغوطة تقع داخل حدود المضلع
-        if (layer instanceof L.Polygon) {
-            const bounds = layer.getBounds();
-            
-            // فحص أولي سريع عبر الحدود (Bounds) لسرعة الأداء
-            if (bounds.contains(e.latlng)) {
-                const data = layer.customData;
-                if (data) {
-                    const content = createPopupContent(layer, data.plotNum, data.area, data.isSold);
-                    
-                    // فتح النافذة عند نقطة الضغط مباشرة
-                    L.popup()
-                        .setLatLng(e.latlng)
-                        .setContent(content)
-                        .openOn(map);
-                    break; // التوقف فور العثور على الأرض المطلوبة
-                }
-            }
-        }
+     if (layer instanceof L.Polyline && !(layer instanceof L.Polygon)) {
+
+    let points = layer.getLatLngs();
+
+    // إغلاق المضلع إذا لم يكن مغلقاً
+    const first = points[0];
+    const last = points[points.length - 1];
+
+    if (
+        first.lat !== last.lat ||
+        first.lng !== last.lng
+    ) {
+        points.push(first);
+    }
+
+    kmlLayer.removeLayer(layer);
+
+    const polygon = L.polygon(points, styleOptions);
+
+    targetPolygon = polygon;
+
+    polygon.customData = {
+        plotNum,
+        area,
+        isSold
+    };
+
+    allLandsLayers.push(polygon);
+
+    polygon.on('click', function(e) {
+        const content = createPopupContent(
+            polygon,
+            plotNum,
+            area,
+            isSold
+        );
+
+        L.popup()
+            .setLatLng(e.latlng)
+            .setContent(content)
+            .openOn(map);
+    });
+
+    kmlLayer.addLayer(polygon);
+
+    // دبوس واحد فقط في المنتصف
+    const centerLatLng = polygon.getBounds().getCenter();
+
+    const customMarker = L.marker(centerLatLng, {
+        icon: yellowPinIcon
+    });
+
+    customMarker.on('click', function() {
+        const content = createPopupContent(
+            polygon,
+            plotNum,
+            area,
+            isSold
+        );
+
+        customMarker.bindPopup(content).openPopup();
+    });
+
+    kmlLayer.addLayer(customMarker);
+
+    return;
+}
     }
 });
 
