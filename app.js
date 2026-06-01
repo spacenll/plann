@@ -27,7 +27,46 @@ L.control.layers(baseMaps, null, { position: 'topleft' }).addTo(map);
 
 // مصفوفة عامة لتخزين كل مضلعات الأراضي للرجوع إليها عند النقر الشامل
 const allLandsLayers = [];
+kmlLayer.eachLayer(function(layer) {
 
+    if (layer instanceof L.Polyline && !(layer instanceof L.Polygon)) {
+
+        const points = layer.getLatLngs();
+
+        // حذف الخط الأصلي
+        kmlLayer.removeLayer(layer);
+
+        // إنشاء مضلع جديد من نفس النقاط
+        const polygon = L.polygon(points, styleOptions);
+
+        targetPolygon = polygon;
+
+        polygon.customData = { plotNum, area, isSold };
+        allLandsLayers.push(polygon);
+
+        polygon.on('click', function(e) {
+            const content = createPopupContent(
+                polygon,
+                plotNum,
+                area,
+                isSold
+            );
+
+            L.popup()
+                .setLatLng(e.latlng)
+                .setContent(content)
+                .openOn(map);
+        });
+
+        kmlLayer.addLayer(polygon);
+
+        return;
+    }
+
+    if (layer.setStyle) {
+        layer.setStyle(styleOptions);
+    }
+});
 // --- 2. دالة حساب المقاسات ---
 function getKmlMeasurements(layer) {
     let html = '';
