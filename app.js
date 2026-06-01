@@ -122,19 +122,42 @@ function processAndDisplayLayer(kmlText, plotNum, area, isSold) {
     // الفحص الأول: تنظيف وتجهيز المضلعات والحذف
 kmlLayer.eachLayer(function(layer) {
 
+    // حذف أي Marker قادم من KML
+    if (layer instanceof L.Marker) {
+        kmlLayer.removeLayer(layer);
+        return;
+    }
+
+    // تحويل LineString إلى Polygon
     if (layer instanceof L.Polyline && !(layer instanceof L.Polygon)) {
 
-        const points = layer.getLatLngs();
+        let points = layer.getLatLngs();
 
-        // حذف الخط الأصلي
+        if (points.length < 3) return;
+
+        // إغلاق المضلع
+        const first = points[0];
+        const last = points[points.length - 1];
+
+        if (
+            first.lat !== last.lat ||
+            first.lng !== last.lng
+        ) {
+            points.push(first);
+        }
+
         kmlLayer.removeLayer(layer);
 
-        // إنشاء مضلع جديد من نفس النقاط
         const polygon = L.polygon(points, styleOptions);
 
         targetPolygon = polygon;
 
-        polygon.customData = { plotNum, area, isSold };
+        polygon.customData = {
+            plotNum,
+            area,
+            isSold
+        };
+
         allLandsLayers.push(polygon);
 
         polygon.on('click', function(e) {
@@ -156,28 +179,62 @@ kmlLayer.eachLayer(function(layer) {
         return;
     }
 
-    if (layer.setStyle) {
+    // إذا كان Polygon أصلاً
+    if (layer instanceof L.Polygon) {
+
         layer.setStyle(styleOptions);
+
+        targetPolygon = layer;
+
+        layer.customData = {
+            plotNum,
+            area,
+            isSold
+        };
+
+        allLandsLayers.push(layer);
+
+        layer.on('click', function(e) {
+            const content = createPopupContent(
+                layer,
+                plotNum,
+                area,
+                isSold
+            );
+
+            L.popup()
+                .setLatLng(e.latlng)
+                .setContent(content)
+                .openOn(map);
+        });
     }
 });
 
     // الفحص الثاني: إذا وجدنا مضلع أرض، نحسب منتصفه الجغرافي ونزرع الدبوس الجديد الخاص بنا
-    if (targetPolygon) {
-        // جلب مركز المضلع الجغرافي الدقيق (Center)
-        const centerLatLng = targetPolygon.getBounds().getCenter();
-        
-        // إنشاء الدبوس الجديد في المنتصف تماماً
-        const customMarker = L.marker(centerLatLng, { icon: yellowPinIcon });
-        
-        // ربط الدبوس الجديد بنفس النافذة المنبثقة وحساب الأبعاد للأرض التابعة له
-        customMarker.on('click', function(e) {
-            const content = createPopupContent(targetPolygon, plotNum, area, isSold);
-            customMarker.bindPopup(content).openPopup();
-        });
+ if (targetPolygon) {
 
-        // إضافة الدبوس الجديد إلى الخريطة مع طبقة الأرض
-        kmlLayer.addLayer(customMarker);
-    }
+    const centerLatLng =
+        targetPolygon.getBounds().getCenter();
+
+    const customMarker = L.marker(
+        centerLatLng,
+        { icon: yellowPinIcon }
+    );
+
+    customMarker.on('click', function() {
+
+        const content = createPopupContent(
+            targetPolygon,
+            plotNum,
+            area,
+            isSold
+        );
+
+        customMarker.bindPopup(content).openPopup();
+    });
+
+    kmlLayer.addLayer(customMarker);
+}
 
     map.addLayer(kmlLayer);
     return kmlLayer;
@@ -190,73 +247,7 @@ map.on('click', function(e) {
         const layer = allLandsLayers[i];
         
         // فحص ما إذا كانت النقطة المضغوطة تقع داخل حدود المضلع
-     if (layer instanceof L.Polyline && !(layer instanceof L.Polygon)) {
-
-    let points = layer.getLatLngs();
-
-    // إغلاق المضلع إذا لم يكن مغلقاً
-    const first = points[0];
-    const last = points[points.length - 1];
-
-    if (
-        first.lat !== last.lat ||
-        first.lng !== last.lng
-    ) {
-        points.push(first);
-    }
-
-    kmlLayer.removeLayer(layer);
-
-    const polygon = L.polygon(points, styleOptions);
-
-    targetPolygon = polygon;
-
-    polygon.customData = {
-        plotNum,
-        area,
-        isSold
-    };
-
-    allLandsLayers.push(polygon);
-
-    polygon.on('click', function(e) {
-        const content = createPopupContent(
-            polygon,
-            plotNum,
-            area,
-            isSold
-        );
-
-        L.popup()
-            .setLatLng(e.latlng)
-            .setContent(content)
-            .openOn(map);
-    });
-
-    kmlLayer.addLayer(polygon);
-
-    // دبوس واحد فقط في المنتصف
-    const centerLatLng = polygon.getBounds().getCenter();
-
-    const customMarker = L.marker(centerLatLng, {
-        icon: yellowPinIcon
-    });
-
-    customMarker.on('click', function() {
-        const content = createPopupContent(
-            polygon,
-            plotNum,
-            area,
-            isSold
-        );
-
-        customMarker.bindPopup(content).openPopup();
-    });
-
-    kmlLayer.addLayer(customMarker);
-
-    return;
-}
+   
     }
 });
 
