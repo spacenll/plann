@@ -27,46 +27,7 @@ L.control.layers(baseMaps, null, { position: 'topleft' }).addTo(map);
 
 // مصفوفة عامة لتخزين كل مضلعات الأراضي للرجوع إليها عند النقر الشامل
 const allLandsLayers = [];
-kmlLayer.eachLayer(function(layer) {
 
-    if (layer instanceof L.Polyline && !(layer instanceof L.Polygon)) {
-
-        const points = layer.getLatLngs();
-
-        // حذف الخط الأصلي
-        kmlLayer.removeLayer(layer);
-
-        // إنشاء مضلع جديد من نفس النقاط
-        const polygon = L.polygon(points, styleOptions);
-
-        targetPolygon = polygon;
-
-        polygon.customData = { plotNum, area, isSold };
-        allLandsLayers.push(polygon);
-
-        polygon.on('click', function(e) {
-            const content = createPopupContent(
-                polygon,
-                plotNum,
-                area,
-                isSold
-            );
-
-            L.popup()
-                .setLatLng(e.latlng)
-                .setContent(content)
-                .openOn(map);
-        });
-
-        kmlLayer.addLayer(polygon);
-
-        return;
-    }
-
-    if (layer.setStyle) {
-        layer.setStyle(styleOptions);
-    }
-});
 // --- 2. دالة حساب المقاسات ---
 function getKmlMeasurements(layer) {
     let html = '';
@@ -159,37 +120,46 @@ function processAndDisplayLayer(kmlText, plotNum, area, isSold) {
     let targetPolygon = null;
 
     // الفحص الأول: تنظيف وتجهيز المضلعات والحذف
-    kmlLayer.eachLayer(function(layer) {
-        // حذف الدبوس الافتراضي القادم من الـ KML لأنه يسبب المشاكل
-        if (layer instanceof L.Marker) {
-            kmlLayer.removeLayer(layer); 
-            return; 
-        }
+kmlLayer.eachLayer(function(layer) {
 
-        if (layer.setStyle) {
-            layer.setStyle(styleOptions);
-        }
+    if (layer instanceof L.Polyline && !(layer instanceof L.Polygon)) {
 
-        if (layer instanceof L.Polygon || layer instanceof L.Polyline) {
-            targetPolygon = layer;
-            
-            // إضافة التلميح النصي التلقائي
-       
+        const points = layer.getLatLngs();
 
-            // حفظ البيانات في المضلع والمصفوفة العامة
-            layer.customData = { plotNum, area, isSold };
-            allLandsLayers.push(layer);
+        // حذف الخط الأصلي
+        kmlLayer.removeLayer(layer);
 
-            // عند الضغط على المضلع
-           layer.on('click', function(e) {
-                const content = createPopupContent(layer, plotNum, area, isSold);
-                L.popup()
-                    .setLatLng(e.latlng)
-                    .setContent(content)
-                    .openOn(map);
-            });
-        }
-    });
+        // إنشاء مضلع جديد من نفس النقاط
+        const polygon = L.polygon(points, styleOptions);
+
+        targetPolygon = polygon;
+
+        polygon.customData = { plotNum, area, isSold };
+        allLandsLayers.push(polygon);
+
+        polygon.on('click', function(e) {
+            const content = createPopupContent(
+                polygon,
+                plotNum,
+                area,
+                isSold
+            );
+
+            L.popup()
+                .setLatLng(e.latlng)
+                .setContent(content)
+                .openOn(map);
+        });
+
+        kmlLayer.addLayer(polygon);
+
+        return;
+    }
+
+    if (layer.setStyle) {
+        layer.setStyle(styleOptions);
+    }
+});
 
     // الفحص الثاني: إذا وجدنا مضلع أرض، نحسب منتصفه الجغرافي ونزرع الدبوس الجديد الخاص بنا
     if (targetPolygon) {
