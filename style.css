@@ -153,7 +153,7 @@ body, html {
 
 /* تنسيق زر الواتساب داخل النافذة المنبثقة */
 .whatsapp-btn {
-    display: none;
+    display: block;
     background-color: #25D366; /* لون واتساب الرسمي */
     color: white !important; /* فرض اللون الأبيض لتجاوز أي إعدادات افتراضية للروابط */
     text-align: center;
