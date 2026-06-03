@@ -1,8 +1,7 @@
-// === إعدادات مستودع GitHub الخاص بك ===
+
 const GITHUB_USER = 'spacenll'; 
 const GITHUB_REPO = 'plann';      
 
-// --- 1. إعداد طبقات الخريطة المختلفة ---
 const streetLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 20 });
 const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 20 });
 const darkLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 20 });
@@ -25,10 +24,8 @@ const baseMaps = {
 };
 L.control.layers(baseMaps, null, { position: 'topleft' }).addTo(map);
 
-// مصفوفة عامة لتخزين كل مضلعات الأراضي للرجوع إليها عند النقر الشامل
 const allLandsLayers = [];
 
-// --- 2. دالة حساب المقاسات ---
 function getKmlMeasurements(layer) {
     let html = '';
     let totalPerimeter = 0;
@@ -66,7 +63,6 @@ function getKmlMeasurements(layer) {
     return html;
 }
 
-// دالة مساعدة لإنشاء محتوى الـ Popup
 function createPopupContent(layer, plotNum, area, isSold) {
     if (isSold) {
         return `
@@ -90,9 +86,6 @@ function createPopupContent(layer, plotNum, area, isSold) {
     }
 }
 
-// دالة مساعدة لمعالجة ورسم طبقة الأرض
-// دالة مساعدة لمعالجة ورسم طبقة الأرض
-// دالة مساعدة لمعالجة ورسم طبقة الأرض
 function processAndDisplayLayer(kmlText, plotNum, area, isSold) {
     const parser = new DOMParser();
     const kmlDom = parser.parseFromString(kmlText, 'text/xml');
@@ -109,33 +102,28 @@ function processAndDisplayLayer(kmlText, plotNum, area, isSold) {
         labelClass = "land-label";
     }
 
-    // إعداد شكل الدبوس الأصفر المخصص (أيقونة مخصصة متوافقة مع الحجم)
     const yellowPinIcon = L.icon({
-        iconUrl: '/plann/yellow-pin.png', // أو رابط صورة yellow-pin.png الخاصة بك
-        iconSize: [32, 32],      // حجم الدبوس
-        iconAnchor: [16, 32],    // نقطة تثبيت الدبوس (الأسفل في المنتصف)
-        popupAnchor: [0, -32]    // مكان ظهور النافذة المنبثقة بالنسبة للدبوس
+        iconUrl: '/plann/yellow-pin.png',
+        iconSize: [32, 32],    
+        iconAnchor: [16, 32],   
+        popupAnchor: [0, -32]    
     });
 
     let targetPolygon = null;
 
-    // الفحص الأول: تنظيف وتجهيز المضلعات والحذف
 kmlLayer.eachLayer(function(layer) {
 
-    // حذف أي Marker قادم من KML
     if (layer instanceof L.Marker) {
         kmlLayer.removeLayer(layer);
         return;
     }
 
-    // تحويل LineString إلى Polygon
     if (layer instanceof L.Polyline && !(layer instanceof L.Polygon)) {
 
         let points = layer.getLatLngs();
 
         if (points.length < 3) return;
 
-        // إغلاق المضلع
         const first = points[0];
         const last = points[points.length - 1];
 
@@ -179,7 +167,6 @@ kmlLayer.eachLayer(function(layer) {
         return;
     }
 
-    // إذا كان Polygon أصلاً
     if (layer instanceof L.Polygon) {
 
         layer.setStyle(styleOptions);
@@ -210,7 +197,6 @@ kmlLayer.eachLayer(function(layer) {
     }
 });
 
-    // الفحص الثاني: إذا وجدنا مضلع أرض، نحسب منتصفه الجغرافي ونزرع الدبوس الجديد الخاص بنا
  if (targetPolygon) {
 
     const centerLatLng =
@@ -240,18 +226,14 @@ kmlLayer.eachLayer(function(layer) {
     return kmlLayer;
 }
 
-// --- الحل السحري: الاستماع للنقر على مستوى الخريطة كاملة وفحص الإحداثيات ---
 map.on('click', function(e) {
-    // التحقق مما إذا كان هناك مضلع أرض يقع تحت نقطة النقر الحالية
     for (let i = 0; i < allLandsLayers.length; i++) {
         const layer = allLandsLayers[i];
         
-        // فحص ما إذا كانت النقطة المضغوطة تقع داخل حدود المضلع
    
     }
 });
 
-// دالة جلب ملف KML واحد ورسمه
 async function fetchSingleKml(landName, isSold) {
     const folder = isSold ? 'sold_kmls' : 'kmls';
     const fileUrl = `https://raw.githubusercontent.com/${GITHUB_USER}/${GITHUB_REPO}/main/${folder}/${landName}.kml`;
@@ -273,7 +255,6 @@ async function fetchSingleKml(landName, isSold) {
     }
 }
 
-// --- 3. نظام التوجيه وإدارة البيانات الجديد بدون قيود ---
 async function handleRoutingAndData() {
     const urlParams = new URLSearchParams(window.location.search);
     const targetLand = urlParams.get('land');
