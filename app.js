@@ -81,7 +81,7 @@ return `
         <p class="area-text"><b>المساحة :</b> ${area} م²</p>
         ${measurementsHtml}
 
-        <a href="/kmls/img/${plotNum}.jpg" target="_blank" class="kroki-btn">
+        <a href="/plann/kmls/img/${plotNum}.jpg" target="_blank" class="kroki-btn">
             عرض الكروكي 
         </a>
     </div>`;
