@@ -74,16 +74,18 @@ function createPopupContent(layer, plotNum, area, isSold) {
     } else {
         const measurementsHtml = getKmlMeasurements(layer);
         const whatsappMsg = encodeURIComponent(`مرحبا، أريد معلومات أكثر عن أرض رقم (${plotNum})`);
-        return `
-            <div class="custom-popup">
-                <h3>أرض رقم: ${plotNum}</h3>
-                <p class="area-text"><b>المساحة :</b> ${area} م²</p>
-                ${measurementsHtml}
-                <a href="https://api.whatsapp.com/send?phone=96899481717&text=${whatsappMsg}" target="_blank" class="whatsapp-btn">
-                    استفسر عبر واتساب 💬
-                </a>
-            </div>`;
-    }
+
+return `
+    <div class="custom-popup">
+        <h3>أرض رقم: ${plotNum}</h3>
+        <p class="area-text"><b>المساحة :</b> ${area} م²</p>
+        ${measurementsHtml}
+
+        <a href="/kmls/img/${plotNum}.jpg" target="_blank" class="kroki-btn">
+            عرض الكروكي 
+        </a>
+    </div>`;
+}
 }
 
 function processAndDisplayLayer(kmlText, plotNum, area, isSold) {
