@@ -1,4 +1,3 @@
-
 const GITHUB_USER = 'spacenll'; 
 const GITHUB_REPO = 'plann';      
 
@@ -22,10 +21,17 @@ const baseMaps = {
     "خريطة الشوارع": streetLayer,
     "الوضع الليلي": darkLayer
 };
+
 L.control.layers(baseMaps, null, { position: 'topleft' }).addTo(map);
+
+// ✅ أهم إضافة
+const landsGroup = L.layerGroup().addTo(map);
 
 const allLandsLayers = [];
 
+/* =========================
+   قياس الأضلاع
+========================= */
 function getKmlMeasurements(layer) {
     let html = '';
     let totalPerimeter = 0;
@@ -44,26 +50,30 @@ function getKmlMeasurements(layer) {
         html += `<div class="measurements-box">
                     <h4>الأضلاع:</h4>
                     <ul>`;
-        
+
         for (let i = 0; i < points.length; i++) {
             const p1 = points[i];
             const p2 = points[(i + 1) % points.length];
+
             if (p1.lat === p2.lat && p1.lng === p2.lng) continue;
+
             const distance = map.distance(p1, p2);
             totalPerimeter += distance;
+
             html += `<li>الضلع ${i + 1}: <b>${distance.toFixed(1)} م</b></li>`;
         }
-        
+
         html += `</ul>
                  <div class="total-perimeter">المحيط الإجمالي: ${totalPerimeter.toFixed(1)} متر</div>
                  </div>`;
-    } else {
-        html += `<div class="measurements-box"><p style="color:#e74c3c; font-size:13px;">لا توجد بيانات قياس.</p></div>`;
     }
+
     return html;
 }
 
-
+/* =========================
+   🔎 فلتر البحث (رقم الأرض فقط)
+========================= */
 function filterLands() {
 
     const landNumber = document
@@ -74,7 +84,6 @@ function filterLands() {
     allLandsLayers.forEach(layer => {
 
         const data = layer.customData;
-
         if (!data) return;
 
         const match =
@@ -82,24 +91,22 @@ function filterLands() {
             String(data.plotNum).includes(landNumber);
 
         if (match) {
-
-            if (!map.hasLayer(layer)) {
-                map.addLayer(layer);
-            }
-
+            layer.addTo(landsGroup);
         } else {
-
-            if (map.hasLayer(layer)) {
-                map.removeLayer(layer);
-            }
+            landsGroup.removeLayer(layer);
         }
     });
 }
+
 document
 .getElementById("landSearch")
 .addEventListener("input", filterLands);
 
+/* =========================
+   Popup
+========================= */
 function createPopupContent(layer, plotNum, area, isSold) {
+
     if (isSold) {
         return `
             <div class="custom-popup sold-popup">
@@ -107,178 +114,145 @@ function createPopupContent(layer, plotNum, area, isSold) {
                 <p class="area-text"><b>المساحة :</b> ${area} م²</p>
                 <div class="sold-badge">تـم الـبـيـع</div>
             </div>`;
-    } else {
-        const measurementsHtml = getKmlMeasurements(layer);
-        const whatsappMsg = encodeURIComponent(`مرحبا، أريد معلومات أكثر عن أرض رقم (${plotNum})`);
+    }
 
-return `
-    <div class="custom-popup">
-        <h3>أرض رقم: ${plotNum}</h3>
-        <p class="area-text"><b>المساحة :</b> ${area} م²</p>
-        ${measurementsHtml}
+    const measurementsHtml = getKmlMeasurements(layer);
 
-        <a href="/plann/kmls/img/${plotNum}.jpg" target="_blank" class="kroki-btn">
-            عرض الكروكي 
-        </a>
-    </div>`;
+    return `
+        <div class="custom-popup">
+            <h3>أرض رقم: ${plotNum}</h3>
+            <p class="area-text"><b>المساحة :</b> ${area} م²</p>
+            ${measurementsHtml}
+
+            <a href="/plann/kmls/img/${plotNum}.jpg" target="_blank" class="kroki-btn">
+                عرض الكروكي 
+            </a>
+        </div>`;
 }
-}
 
+/* =========================
+   معالجة KML
+========================= */
 function processAndDisplayLayer(kmlText, plotNum, area, isSold) {
+
     const parser = new DOMParser();
     const kmlDom = parser.parseFromString(kmlText, 'text/xml');
     const kmlLayer = new L.KML(kmlDom);
 
-    let styleOptions = {};
-    let labelClass = "";
-
-    if (isSold) {
-        styleOptions = { color: '#e74c3c', weight: 3, fillColor: '#c0392b', fillOpacity: 0.6 };
-        labelClass = "land-label-sold";
-    } else {
-        styleOptions = { color: '#d4af37', weight: 3, fillColor: '#46306e', fillOpacity: 0.4 };
-        labelClass = "land-label";
-    }
+    let styleOptions = isSold
+        ? { color: '#e74c3c', weight: 3, fillColor: '#c0392b', fillOpacity: 0.6 }
+        : { color: '#d4af37', weight: 3, fillColor: '#46306e', fillOpacity: 0.4 };
 
     const yellowPinIcon = L.icon({
         iconUrl: '/plann/yellow-pin.png',
-        iconSize: [32, 32],    
-        iconAnchor: [16, 32],   
-        popupAnchor: [0, -32]    
+        iconSize: [32, 32],
+        iconAnchor: [16, 32],
+        popupAnchor: [0, -32]
     });
 
     let targetPolygon = null;
 
-kmlLayer.eachLayer(function(layer) {
-   
-    if (layer instanceof L.Marker) {
-        kmlLayer.removeLayer(layer);
-        return;
-    }
+    kmlLayer.eachLayer(function(layer) {
 
-    if (layer instanceof L.Polyline && !(layer instanceof L.Polygon)) {
-
-        let points = layer.getLatLngs();
-
-        if (points.length < 3) return;
-
-        const first = points[0];
-        const last = points[points.length - 1];
-
-        if (
-            first.lat !== last.lat ||
-            first.lng !== last.lng
-        ) {
-            points.push(first);
+        if (layer instanceof L.Marker) {
+            kmlLayer.removeLayer(layer);
+            return;
         }
 
-        kmlLayer.removeLayer(layer);
+        if (layer instanceof L.Polyline && !(layer instanceof L.Polygon)) {
 
-        const polygon = L.polygon(points, styleOptions);
+            let points = layer.getLatLngs();
 
-        targetPolygon = polygon;
+            if (points.length < 3) return;
 
-        polygon.customData = {
-            plotNum,
-            area,
-            isSold
-        };
+            const first = points[0];
+            const last = points[points.length - 1];
 
-        allLandsLayers.push(polygon);
+            if (first.lat !== last.lat || first.lng !== last.lng) {
+                points.push(first);
+            }
 
-        polygon.on('click', function(e) {
-            const content = createPopupContent(
-                polygon,
+            kmlLayer.removeLayer(layer);
+
+            const polygon = L.polygon(points, styleOptions);
+
+            targetPolygon = polygon;
+
+            polygon.customData = {
                 plotNum,
                 area,
                 isSold
-            );
+            };
 
-            L.popup()
-                .setLatLng(e.latlng)
-                .setContent(content)
-                .openOn(map);
-        });
+            allLandsLayers.push(polygon);
+            landsGroup.addLayer(polygon);
 
-        kmlLayer.addLayer(polygon);
+            polygon.on('click', function(e) {
+                L.popup()
+                    .setLatLng(e.latlng)
+                    .setContent(createPopupContent(polygon, plotNum, area, isSold))
+                    .openOn(map);
+            });
 
-        return;
-    }
+            kmlLayer.addLayer(polygon);
+        }
 
-    if (layer instanceof L.Polygon) {
+        if (layer instanceof L.Polygon) {
 
-        layer.setStyle(styleOptions);
+            layer.setStyle(styleOptions);
 
-        targetPolygon = layer;
+            targetPolygon = layer;
 
-        layer.customData = {
-            plotNum,
-            area,
-            isSold
-        };
-
-        allLandsLayers.push(layer);
-
-        layer.on('click', function(e) {
-            const content = createPopupContent(
-                layer,
+            layer.customData = {
                 plotNum,
                 area,
                 isSold
-            );
+            };
 
-            L.popup()
-                .setLatLng(e.latlng)
-                .setContent(content)
-                .openOn(map);
-        });
-    }
-});
+            allLandsLayers.push(layer);
+            landsGroup.addLayer(layer);
 
- if (targetPolygon) {
-
-    const centerLatLng =
-        targetPolygon.getBounds().getCenter();
-
-    const customMarker = L.marker(
-        centerLatLng,
-        { icon: yellowPinIcon }
-    );
-
-    customMarker.on('click', function() {
-
-        const content = createPopupContent(
-            targetPolygon,
-            plotNum,
-            area,
-            isSold
-        );
-
-        customMarker.bindPopup(content).openPopup();
+            layer.on('click', function(e) {
+                L.popup()
+                    .setLatLng(e.latlng)
+                    .setContent(createPopupContent(layer, plotNum, area, isSold))
+                    .openOn(map);
+            });
+        }
     });
 
-    kmlLayer.addLayer(customMarker);
-}
+    if (targetPolygon) {
 
-    map.addLayer(kmlLayer);
+        const center = targetPolygon.getBounds().getCenter();
+
+        const marker = L.marker(center, { icon: yellowPinIcon });
+
+        marker.on('click', function() {
+            marker.bindPopup(
+                createPopupContent(targetPolygon, plotNum, area, isSold)
+            ).openPopup();
+        });
+
+        landsGroup.addLayer(marker);
+    }
+
     return kmlLayer;
 }
 
-map.on('click', function(e) {
-    for (let i = 0; i < allLandsLayers.length; i++) {
-        const layer = allLandsLayers[i];
-        
-   
-    }
-});
-
+/* =========================
+   تحميل البيانات
+========================= */
 async function fetchSingleKml(landName, isSold) {
+
     const folder = isSold ? 'sold_kmls' : 'kmls';
-    const fileUrl = `https://raw.githubusercontent.com/${GITHUB_USER}/${GITHUB_REPO}/main/${folder}/${landName}.kml`;
-    
+
+    const fileUrl =
+        `https://raw.githubusercontent.com/${GITHUB_USER}/${GITHUB_REPO}/main/${folder}/${landName}.kml`;
+
     try {
         const res = await fetch(fileUrl);
         if (!res.ok) return null;
+
         let kmlText = await res.text();
         kmlText = kmlText.replace(/http:\/\//g, 'https://');
 
@@ -287,49 +261,51 @@ async function fetchSingleKml(landName, isSold) {
         const area = parts[1] || 'غير محدد';
 
         return processAndDisplayLayer(kmlText, plotNum, area, isSold);
+
     } catch (err) {
-        console.error("خطأ في جلب ملف الكيه إم إل:", landName, err);
+        console.error("خطأ في جلب KML:", landName, err);
         return null;
     }
 }
 
+/* =========================
+   تشغيل النظام
+========================= */
 async function handleRoutingAndData() {
+
     const urlParams = new URLSearchParams(window.location.search);
     const targetLand = urlParams.get('land');
 
     if (targetLand) {
-        console.log(`عرض الأرض المحددة فقط: ${targetLand}`);
+
         let layer = await fetchSingleKml(targetLand, false);
-        if (!layer) {
-            layer = await fetchSingleKml(targetLand, true);
-        }
+        if (!layer) layer = await fetchSingleKml(targetLand, true);
 
         if (layer) {
             setTimeout(() => {
                 const bounds = layer.getBounds();
-                if (bounds.isValid()) map.fitBounds(bounds, { maxZoom: 18, padding: [50, 50] });
+                if (bounds.isValid()) {
+                    map.fitBounds(bounds, { maxZoom: 18, padding: [50, 50] });
+                }
             }, 500);
-        } else {
-            alert("عذراً، لم يتم العثور على ملف الأرض المطلوبة.");
         }
-    } 
-    else {
-        const dbUrl = `https://raw.githubusercontent.com/${GITHUB_USER}/${GITHUB_REPO}/main/database.json`;
-        try {
-            const dbResponse = await fetch(dbUrl);
-            const db = await dbResponse.json();
 
-            if (db.available) {
-                db.available.forEach(landName => fetchSingleKml(landName, false));
-            }
-            if (db.sold) {
-                db.sold.forEach(landName => fetchSingleKml(landName, true));
-            }
-        } catch (error) {
-            console.error("خطأ في قراءة ملف دليل الأراضي database.json", error);
+    } else {
+
+        const dbUrl =
+            `https://raw.githubusercontent.com/${GITHUB_USER}/${GITHUB_REPO}/main/database.json`;
+
+        try {
+            const res = await fetch(dbUrl);
+            const db = await res.json();
+
+            db.available?.forEach(name => fetchSingleKml(name, false));
+            db.sold?.forEach(name => fetchSingleKml(name, true));
+
+        } catch (err) {
+            console.error("خطأ في database.json", err);
         }
     }
 }
 
-// تشغيل الفحص
 handleRoutingAndData();
