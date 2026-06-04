@@ -81,15 +81,12 @@ function filterLands() {
         .value
         .trim();
 
-    // إذا ما في بيانات لسه
-    if (!allLandsLayers.length) return;
+    let foundLayer = null;
 
     allLandsLayers.forEach(layer => {
 
         const data = layer.customData;
-
-        // حماية من الأخطاء
-        if (!data || !data.plotNum) return;
+        if (!data) return;
 
         const match =
             landNumber === "" ||
@@ -97,17 +94,48 @@ function filterLands() {
 
         if (match) {
 
-            if (!landsGroup.hasLayer(layer)) {
-                landsGroup.addLayer(layer);
+            landsGroup.addLayer(layer);
+
+            // نحفظ أول نتيجة نلاقيها
+            if (!foundLayer && landNumber !== "") {
+                foundLayer = layer;
             }
 
         } else {
-
-            if (landsGroup.hasLayer(layer)) {
-                landsGroup.removeLayer(layer);
-            }
+            landsGroup.removeLayer(layer);
         }
     });
+
+    // 📍 إذا في نتيجة واحدة أو أول نتيجة
+    if (foundLayer) {
+
+        setTimeout(() => {
+
+            // Zoom على الأرض
+            map.fitBounds(foundLayer.getBounds(), {
+                maxZoom: 18,
+                padding: [50, 50]
+            });
+
+            // فتح popup تلقائي
+            setTimeout(() => {
+
+                L.popup()
+                    .setLatLng(foundLayer.getBounds().getCenter())
+                    .setContent(
+                        createPopupContent(
+                            foundLayer,
+                            foundLayer.customData.plotNum,
+                            foundLayer.customData.area,
+                            foundLayer.customData.isSold
+                        )
+                    )
+                    .openOn(map);
+
+            }, 400);
+
+        }, 200);
+    }
 }
 
 document
