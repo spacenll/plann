@@ -10,22 +10,40 @@ body, html {
     height: 100vh;
      font-family: "Alexandria", sans-serif;
 }
-.filters {
-    position: absolute;
-    top: 15px;
-    right: 15px;
-    z-index: 1000;
+.search-box {
     display: flex;
-    gap: 10px;
+    gap: 6px;
+    align-items: center;
+    background: white;
+    padding: 8px;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.15);
 }
 
-.filters input,
-.filters select {
-    padding: 10px;
+.search-box input {
     border: none;
-    border-radius: 8px;
+    outline: none;
+    padding: 8px;
     font-family: "Alexandria", sans-serif;
-    box-shadow: 0 2px 10px rgba(0,0,0,.15);
+    width: 160px;
+}
+
+.search-box button {
+    border: none;
+    padding: 8px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: "Alexandria", sans-serif;
+}
+
+#searchBtn {
+    background: #46306e;
+    color: white;
+}
+
+#clearSearch {
+    background: #e74c3c;
+    color: white;
 }
 
 .leaflet-tooltip-wrapper,
