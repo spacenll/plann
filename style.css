@@ -10,8 +10,24 @@ body, html {
     height: 100vh;
      font-family: "Alexandria", sans-serif;
 }
-/* مسمى الأراضي المباعة (أحمر) */
-/* تعطيل التفاعل تماماً عن أي مسمى أو مؤشر على الخريطة لمنع حجب النقرات */
+.filters {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    z-index: 1000;
+    display: flex;
+    gap: 10px;
+}
+
+.filters input,
+.filters select {
+    padding: 10px;
+    border: none;
+    border-radius: 8px;
+    font-family: "Alexandria", sans-serif;
+    box-shadow: 0 2px 10px rgba(0,0,0,.15);
+}
+
 .leaflet-tooltip-wrapper,
 .leaflet-tooltip,
 .leaflet-tooltip-bottom,
@@ -21,7 +37,7 @@ body, html {
     pointer-events: none !important;
 }
 
-/* تنسيق دبوس الأرض المباعة */
+
 .land-label-sold {
     background: rgba(192, 57, 43, 0.9) !important; /* أحمر غامق */
     border: 1px solid #ffffff !important;
