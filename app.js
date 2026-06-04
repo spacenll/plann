@@ -81,19 +81,31 @@ function filterLands() {
         .value
         .trim();
 
+    // إذا ما في بيانات لسه
+    if (!allLandsLayers.length) return;
+
     allLandsLayers.forEach(layer => {
 
         const data = layer.customData;
-        if (!data) return;
+
+        // حماية من الأخطاء
+        if (!data || !data.plotNum) return;
 
         const match =
-            !landNumber ||
+            landNumber === "" ||
             String(data.plotNum).includes(landNumber);
 
         if (match) {
-            layer.addTo(landsGroup);
+
+            if (!landsGroup.hasLayer(layer)) {
+                landsGroup.addLayer(layer);
+            }
+
         } else {
-            landsGroup.removeLayer(layer);
+
+            if (landsGroup.hasLayer(layer)) {
+                landsGroup.removeLayer(layer);
+            }
         }
     });
 }
@@ -309,3 +321,6 @@ async function handleRoutingAndData() {
 }
 
 handleRoutingAndData();
+setTimeout(() => {
+    filterLands();
+}, 1000);
