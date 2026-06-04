@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2" xmlns:gx="http://www.google.com/kml/ext/2.2" xmlns:kml="http://www.opengis.net/kml/2.2" xmlns:atom="http://www.w3.org/2005/Atom">
+<Document id="1MotDHRHQTLUnllhqZZdsiLYwpz3-fc_8">
+	<name>خريطة بلا عنوان</name>
+	<gx:CascadingStyle kml:id="__managed_style_0DFD35257B3FC72F53E7_normal">
+		<Style>
+			<IconStyle>
+				<Icon>
+					<href>https://earth.google.com/earth/document/icon?color=1976d2&amp;id=2000&amp;scale=4</href>
+				</Icon>
+				<hotSpot x="64" y="128" xunits="pixels" yunits="insetPixels"/>
+			</IconStyle>
+			<LabelStyle>
+			</LabelStyle>
+			<LineStyle>
+				<color>ff58eeff</color>
+				<width>0.8</width>
+			</LineStyle>
+			<PolyStyle>
+				<color>40000000</color>
+			</PolyStyle>
+			<BalloonStyle>
+			</BalloonStyle>
+		</Style>
+	</gx:CascadingStyle>
+	<gx:CascadingStyle kml:id="__managed_style_0DFD35257B3FC72F53E7_highlight">
+		<Style>
+			<IconStyle>
+				<scale>1.2</scale>
+				<Icon>
+					<href>https://earth.google.com/earth/document/icon?color=1976d2&amp;id=2000&amp;scale=4</href>
+				</Icon>
+				<hotSpot x="64" y="128" xunits="pixels" yunits="insetPixels"/>
+			</IconStyle>
+			<LabelStyle>
+			</LabelStyle>
+			<LineStyle>
+				<color>ff58eeff</color>
+				<width>1.2</width>
+			</LineStyle>
+			<PolyStyle>
+				<color>40000000</color>
+			</PolyStyle>
+			<BalloonStyle>
+			</BalloonStyle>
+		</Style>
+	</gx:CascadingStyle>
+	<StyleMap id="__managed_style_0DFD35257B3FC72F53E7">
+		<Pair>
+			<key>normal</key>
+			<styleUrl>#__managed_style_0DFD35257B3FC72F53E7_normal</styleUrl>
+		</Pair>
+		<Pair>
+			<key>highlight</key>
+			<styleUrl>#__managed_style_0DFD35257B3FC72F53E7_highlight</styleUrl>
+		</Pair>
+	</StyleMap>
+	<Placemark id="0767AAEEA43FC72F27F8">
+		<name>Untitled polygon</name>
+		<LookAt>
+			<longitude>54.03311265714654</longitude>
+			<latitude>17.04099895220687</latitude>
+			<altitude>50.61921084239085</altitude>
+			<heading>0</heading>
+			<tilt>0</tilt>
+			<gx:fovy>31.21015091329999</gx:fovy>
+			<range>161.9756796665752</range>
+			<altitudeMode>absolute</altitudeMode>
+		</LookAt>
+		<styleUrl>#__managed_style_0DFD35257B3FC72F53E7</styleUrl>
+		<Polygon>
+			<outerBoundaryIs>
+				<LinearRing>
+					<coordinates>
+						54.03288658969206,17.0409785240349,0 54.03301378604947,17.04073015901611,0 54.0334483867986,17.04096778145256,0 54.03349425400549,17.04108618725503,0 54.03340124491857,17.04125084746704,0 54.03288658969206,17.0409785240349,0 
+					</coordinates>
+				</LinearRing>
+			</outerBoundaryIs>
+		</Polygon>
+	</Placemark>
+</Document>
+</kml>
