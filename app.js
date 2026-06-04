@@ -28,6 +28,16 @@ const landsGroup = L.layerGroup().addTo(map);
 
 const allLandsLayers = [];
 
+document.getElementById("searchBtn").addEventListener("click", runSearch);
+
+document.getElementById("clearSearch").addEventListener("click", clearSearch);
+
+// Enter key
+document.getElementById("landSearch").addEventListener("keydown", function(e) {
+    if (e.key === "Enter") {
+        runSearch();
+    }
+});
 
 function getKmlMeasurements(layer) {
     let html = '';
@@ -71,21 +81,15 @@ function getKmlMeasurements(layer) {
 /* =========================
    🔎 فلتر البحث (رقم الأرض فقط)
 ========================= */
-function filterLands() {
+function runSearch() {
 
     const landNumber = document
         .getElementById("landSearch")
         .value
         .trim();
-   if (landNumber === "") {
 
-        allLandsLayers.forEach(layer => {
-            landsGroup.addLayer(layer);
-        });
+    if (!landNumber) return;
 
-        map.setView([17.0151, 54.0924], 13); // رجوع للموقع الأساسي
-        return;
-    }
     let foundLayer = null;
 
     allLandsLayers.forEach(layer => {
@@ -93,15 +97,13 @@ function filterLands() {
         const data = layer.customData;
         if (!data) return;
 
-        const match =
-            landNumber === "" ||
-            String(data.plotNum).includes(landNumber);
+        const match = String(data.plotNum).includes(landNumber);
 
         if (match) {
 
             landsGroup.addLayer(layer);
 
-            if (!foundLayer && landNumber !== "") {
+            if (!foundLayer) {
                 foundLayer = layer;
             }
 
@@ -110,13 +112,9 @@ function filterLands() {
         }
     });
 
-if (foundLayer) {
-
-    setTimeout(() => {
+    if (foundLayer) {
 
         const bounds = foundLayer.getBounds();
-
-        if (!bounds.isValid()) return;
 
         map.fitBounds(bounds, {
             maxZoom: 18,
@@ -127,7 +125,7 @@ if (foundLayer) {
 
             const center = bounds.getCenter();
 
-            L.popup({ autoPan: true })
+            L.popup()
                 .setLatLng(center)
                 .setContent(
                     createPopupContent(
@@ -138,13 +136,19 @@ if (foundLayer) {
                     )
                 )
                 .openOn(map);
-
         });
-
-    }, 200);
+    }
 }
-}
+function clearSearch() {
 
+    document.getElementById("landSearch").value = "";
+
+    allLandsLayers.forEach(layer => {
+        landsGroup.addLayer(layer);
+    });
+
+    map.setView([17.0151, 54.0924], 13);
+}
 document
 .getElementById("landSearch")
 .addEventListener("input", filterLands);
