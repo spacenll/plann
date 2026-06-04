@@ -24,14 +24,11 @@ const baseMaps = {
 
 L.control.layers(baseMaps, null, { position: 'topleft' }).addTo(map);
 
-// ✅ أهم إضافة
 const landsGroup = L.layerGroup().addTo(map);
 
 const allLandsLayers = [];
 
-/* =========================
-   قياس الأضلاع
-========================= */
+
 function getKmlMeasurements(layer) {
     let html = '';
     let totalPerimeter = 0;
@@ -96,7 +93,6 @@ function filterLands() {
 
             landsGroup.addLayer(layer);
 
-            // نحفظ أول نتيجة نلاقيها
             if (!foundLayer && landNumber !== "") {
                 foundLayer = layer;
             }
@@ -106,7 +102,6 @@ function filterLands() {
         }
     });
 
-    // 📍 إذا في نتيجة واحدة أو أول نتيجة
     if (foundLayer) {
 
         setTimeout(() => {
@@ -117,7 +112,6 @@ function filterLands() {
                 padding: [50, 50]
             });
 
-            // فتح popup تلقائي
             setTimeout(() => {
 
                 L.popup()
