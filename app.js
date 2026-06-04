@@ -102,34 +102,39 @@ function filterLands() {
         }
     });
 
-    if (foundLayer) {
+if (foundLayer) {
 
-        setTimeout(() => {
+    setTimeout(() => {
 
-            // Zoom على الأرض
-            map.fitBounds(foundLayer.getBounds(), {
-                maxZoom: 18,
-                padding: [50, 50]
-            });
+        const bounds = foundLayer.getBounds();
 
-            setTimeout(() => {
+        if (!bounds.isValid()) return;
 
-                L.popup()
-                    .setLatLng(foundLayer.getBounds().getCenter())
-                    .setContent(
-                        createPopupContent(
-                            foundLayer,
-                            foundLayer.customData.plotNum,
-                            foundLayer.customData.area,
-                            foundLayer.customData.isSold
-                        )
+        map.fitBounds(bounds, {
+            maxZoom: 18,
+            padding: [80, 80]
+        });
+
+        map.once("moveend", () => {
+
+            const center = bounds.getCenter();
+
+            L.popup({ autoPan: true })
+                .setLatLng(center)
+                .setContent(
+                    createPopupContent(
+                        foundLayer,
+                        foundLayer.customData.plotNum,
+                        foundLayer.customData.area,
+                        foundLayer.customData.isSold
                     )
-                    .openOn(map);
+                )
+                .openOn(map);
 
-            }, 400);
+        });
 
-        }, 200);
-    }
+    }, 200);
+}
 }
 
 document
