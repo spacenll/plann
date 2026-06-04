@@ -1,4 +1,4 @@
-let allLands = [];
+
 const GITHUB_USER = 'spacenll'; 
 const GITHUB_REPO = 'plann';      
 
@@ -63,44 +63,7 @@ function getKmlMeasurements(layer) {
     return html;
 }
 
-function filterLands() {
 
-    const landNumber =
-        document.getElementById("landSearch")
-        .value.trim();
-
-    const region =
-        document.getElementById("regionFilter")
-        .value;
-
-    allLands.forEach(layer => {
-
-        const popupContent =
-            layer.getPopup()?.getContent() || "";
-
-        const matchNumber =
-            !landNumber ||
-            popupContent.includes(landNumber);
-
-        const matchRegion =
-            !region ||
-            popupContent.includes(region);
-
-        if (matchNumber && matchRegion) {
-            map.addLayer(layer);
-        } else {
-            map.removeLayer(layer);
-        }
-    });
-}
-
-document
-.getElementById("landSearch")
-.addEventListener("input", filterLands);
-
-document
-.getElementById("regionFilter")
-.addEventListener("change", filterLands);
 
 function createPopupContent(layer, plotNum, area, isSold) {
     if (isSold) {
@@ -153,7 +116,7 @@ function processAndDisplayLayer(kmlText, plotNum, area, isSold) {
     let targetPolygon = null;
 
 kmlLayer.eachLayer(function(layer) {
-   allLands.push(layer);
+   
     if (layer instanceof L.Marker) {
         kmlLayer.removeLayer(layer);
         return;
