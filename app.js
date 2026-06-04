@@ -77,7 +77,15 @@ function filterLands() {
         .getElementById("landSearch")
         .value
         .trim();
+   if (landNumber === "") {
 
+        allLandsLayers.forEach(layer => {
+            landsGroup.addLayer(layer);
+        });
+
+        map.setView([17.0151, 54.0924], 13); // رجوع للموقع الأساسي
+        return;
+    }
     let foundLayer = null;
 
     allLandsLayers.forEach(layer => {
