@@ -64,6 +64,40 @@ function getKmlMeasurements(layer) {
 }
 
 
+function filterLands() {
+
+    const landNumber = document
+        .getElementById("landSearch")
+        .value
+        .trim();
+
+    allLandsLayers.forEach(layer => {
+
+        const data = layer.customData;
+
+        if (!data) return;
+
+        const match =
+            !landNumber ||
+            String(data.plotNum).includes(landNumber);
+
+        if (match) {
+
+            if (!map.hasLayer(layer)) {
+                map.addLayer(layer);
+            }
+
+        } else {
+
+            if (map.hasLayer(layer)) {
+                map.removeLayer(layer);
+            }
+        }
+    });
+}
+document
+.getElementById("landSearch")
+.addEventListener("input", filterLands);
 
 function createPopupContent(layer, plotNum, area, isSold) {
     if (isSold) {
